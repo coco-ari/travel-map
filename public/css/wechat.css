@@ -1062,6 +1062,34 @@ body::before {
 .shop-popup-dist { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
 .shop-popup-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
 
+.detail-status-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--surface-2);
+  border: none;
+  border-radius: 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.detail-status-btn:active {
+  background: var(--border);
+}
+
+.detail-status-arrow {
+  font-size: 16px;
+  color: var(--text-tertiary);
+  line-height: 1;
+}
+
+.detail-status {
+  font-weight: 600;
+}
+
 /* Detail Info & Actions */
 .detail-info {
   display: flex;

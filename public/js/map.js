@@ -329,7 +329,10 @@ async function openShopCard(shop) {
           </div>
           <div class="detail-info-row">
             <span class="detail-info-label">状态</span>
-            <span class="detail-status">${currentShop.status === 'visited' ? '已去' : '未去'}</span>
+            <button class="detail-status-btn" data-action="toggleStatus" data-id="${currentShop.id}">
+              <span class="detail-status-text">${currentShop.status === 'visited' ? '已去' : '未去'}</span>
+              <span class="detail-status-arrow">›</span>
+            </button>
           </div>
           ${currentShop.tags ? `<div class="detail-info-row">
             <span class="detail-info-label">标签</span>
@@ -362,9 +365,6 @@ async function openShopCard(shop) {
         </label>
         <button class="detail-action-btn" data-action="navigateTo" data-lat="${currentShop.lat}" data-lng="${currentShop.lng}">🧭 导航</button>
         <button class="detail-action-btn btn-save-close" data-action="saveAndClose">✓ 保存</button>
-      </div>
-      <div class="detail-toggle-row">
-        <button class="btn-detail-status" data-action="toggleStatus" data-id="${currentShop.id}">${statusBtnText(currentShop.status)}</button>
       </div>
     </div>
   `;
