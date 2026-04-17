@@ -977,7 +977,7 @@ async function confirmAddShop() {
 let longPressTimer = null;
 let touchStartPos = null;
 let addingShop = false; // Guard against rapid taps
-const LONG_PRESS_DURATION = 500;
+const LONG_PRESS_DURATION = 2000;
 const MOVE_THRESHOLD = 10;
 
 function initLongPress() {
