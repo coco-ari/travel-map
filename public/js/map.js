@@ -91,6 +91,7 @@ function addShopMarker(shop) {
   });
 
   const marker = L.marker([shop.lat, shop.lng], { icon }).addTo(map);
+  marker._shopStatus = shop.status === 'visited' ? '已去' : '未去';
   marker.bindPopup(createShopPopup(shop));
   shopMarkers[shop.id] = marker;
 }
@@ -166,31 +167,111 @@ window.markVisited = async function(id) {
   map.closePopup();
 };
 
-window.showDetail = function(id) {
+window.showDetail = async function(id) {
   const marker = shopMarkers[id];
   if (!marker) return;
   const { lat, lng } = marker.getLatLng();
-  // Get name from popup element's raw text (textContent already unescapes HTML entities)
   const popupEl = marker.getPopup().getElement();
   const nameEl = popupEl.querySelector('.shop-popup-name');
   const name = nameEl ? nameEl.textContent : '未知';
 
+  // Fetch photos
+  let photos = [];
+  try {
+    const res = await fetch(`/api/shops/${id}/photos`);
+    if (res.ok) photos = await res.json();
+  } catch {}
+
+  const statusText = marker._shopStatus || '未去';
+
   const detail = document.createElement('div');
   detail.className = 'modal-overlay';
+  detail.id = 'shop-detail-modal';
   detail.innerHTML = `
-    <div class="modal">
+    <div class="modal shop-detail-modal">
       <div class="modal-header">店铺详情</div>
       <div class="modal-body">
         <div style="margin-bottom:8px;"><strong>店名：</strong>${escapeHtml(name)}</div>
         <div style="margin-bottom:8px;"><strong>坐标：</strong>${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
-        <div><strong>状态：</strong>未去</div>
+        <div style="margin-bottom:12px;"><strong>状态：</strong>${statusText}</div>
+        <div class="photo-section">
+          <div class="photo-grid" id="photo-grid">
+            ${photos.map(p => `
+              <div class="photo-thumb" data-id="${p.id}" onclick="previewPhoto('${p.filename}', ${p.id})">
+                <img src="/photos/${p.filename}" alt="店铺照片">
+              </div>
+            `).join('')}
+          </div>
+          ${photos.length === 0 ? '<div class="no-photos">暂无照片</div>' : ''}
+        </div>
+        <div class="photo-actions">
+          <label class="photo-upload-btn">
+            📷 拍照上传
+            <input type="file" accept="image/*" capture="environment" id="photo-input" onchange="uploadPhoto(${id}, this)" hidden>
+          </label>
+        </div>
       </div>
       <div class="modal-footer">
-        <button class="btn" onclick="this.closest('.modal-overlay').remove()">关闭</button>
+        <button class="btn" onclick="document.getElementById('shop-detail-modal').remove()">关闭</button>
       </div>
     </div>
   `;
   document.body.appendChild(detail);
+};
+
+window.previewPhoto = function(filename, photoId) {
+  const overlay = document.createElement('div');
+  overlay.className = 'photo-preview-overlay';
+  overlay.onclick = () => overlay.remove();
+  overlay.innerHTML = `
+    <img src="/photos/${filename}" alt="照片预览">
+    <button class="btn btn-danger photo-delete-btn" onclick="event.stopPropagation(); deletePhoto(${photoId}, this)">删除</button>
+  `;
+  document.body.appendChild(overlay);
+};
+
+window.uploadPhoto = async function(shopId, input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('photo', file);
+
+  try {
+    const res = await fetch(`/api/shops/${shopId}/photo`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (res.ok) {
+      // Reload detail modal
+      document.getElementById('shop-detail-modal')?.remove();
+      showDetail(shopId);
+    } else {
+      const err = await res.json();
+      alert(err.error || '上传失败');
+    }
+  } catch {
+    alert('上传失败，请重试');
+  }
+};
+
+window.deletePhoto = async function(photoId, btn) {
+  if (!confirm('确定删除此照片吗？')) return;
+  try {
+    const res = await fetch(`/api/photos/${photoId}`, { method: 'DELETE' });
+    if (res.ok) {
+      document.querySelector('.photo-preview-overlay')?.remove();
+      // Reload current shop detail
+      const modal = document.getElementById('shop-detail-modal');
+      if (modal) {
+        const shopId = document.getElementById('photo-input')?.getAttribute('onchange')?.match(/\d+/)?.[0];
+        modal.remove();
+        if (shopId) showDetail(Number(shopId));
+      }
+    }
+  } catch {
+    alert('删除失败');
+  }
 };
 
 window.navigateTo = function(lat, lng) {

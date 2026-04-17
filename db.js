@@ -16,6 +16,33 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS photos (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    shop_id     INTEGER NOT NULL,
+    filename    TEXT NOT NULL,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
+  )
+`);
+
+function addPhoto(shopId, filename) {
+  const info = db.prepare(
+    'INSERT INTO photos (shop_id, filename) VALUES (?, ?)'
+  ).run(shopId, filename);
+  return db.prepare('SELECT * FROM photos WHERE id = ?').get(info.lastInsertRowid);
+}
+
+function getPhotosByShopId(shopId) {
+  return db.prepare(
+    'SELECT * FROM photos WHERE shop_id = ? ORDER BY created_at DESC'
+  ).all(shopId);
+}
+
+function deletePhoto(id) {
+  return db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
+}
+
 function getAll(status) {
   if (status) {
     return db.prepare('SELECT * FROM shops WHERE status = ? ORDER BY created_at DESC').all(status);
@@ -43,4 +70,4 @@ function updateStatus(id, status) {
   return db.prepare('SELECT * FROM shops WHERE id = ?').get(id);
 }
 
-module.exports = { getAll, create, getById, remove, updateStatus };
+module.exports = { getAll, create, getById, remove, updateStatus, addPhoto, getPhotosByShopId, deletePhoto };

@@ -16,7 +16,30 @@ app.get('/admin', (req, res) => {
 });
 
 // API routes
-const db = require('./db');
+const multer = require('multer');
+const fs = require('fs');
+
+// Ensure photos directory exists
+fs.mkdirSync(path.join(__dirname, 'public', 'photos'), { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: path.join(__dirname, 'public', 'photos'),
+  filename: (req, file, cb) => {
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, unique + path.extname(file.originalname));
+  }
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    if (/^image\/(jpeg|jpg|png|webp)$/.test(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('只支持 jpg/png/webp 图片'));
+    }
+  }
+});
 
 app.get('/api/shops', (req, res) => {
   const { status } = req.query;
@@ -52,6 +75,38 @@ app.patch('/api/shops/:id/status', (req, res) => {
   }
   const shop = db.updateStatus(id, status);
   res.json(shop);
+});
+
+// Photo routes
+app.post('/api/shops/:id/photo', upload.single('photo'), (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!db.getById(id)) {
+    return res.status(404).json({ error: 'shop not found' });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: 'no photo uploaded' });
+  }
+  const photo = db.addPhoto(id, req.file.filename);
+  res.status(201).json(photo);
+});
+
+app.get('/api/shops/:id/photos', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  res.json(db.getPhotosByShopId(id));
+});
+
+app.delete('/api/photos/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const photo = db.deletePhoto(id);
+  if (!photo) {
+    return res.status(404).json({ error: 'photo not found' });
+  }
+  db.prepare('DELETE FROM photos WHERE id = ?').run(id);
+  // Delete file
+  try {
+    fs.unlinkSync(path.join(__dirname, 'public', 'photos', photo.filename));
+  } catch {}
+  res.json({ ok: true });
 });
 
 module.exports = app;
