@@ -32,14 +32,10 @@
 
     <!-- Card View -->
     <main id="card-view" class="hidden">
-      <div class="distance-filter">
-        <div class="distance-filter-inner">
-          <button class="dist-btn" data-dist="1">1km</button>
-          <button class="dist-btn" data-dist="3">3km</button>
-          <button class="dist-btn dist-btn-active" data-dist="5">5km</button>
-          <button class="dist-btn" data-dist="10">10km</button>
-          <button class="dist-btn" data-dist="0">全部</button>
-        </div>
+      <div class="distance-panel">
+        <input type="range" class="dist-slider" id="dist-slider" min="100" max="10000" step="100" value="5000">
+        <div class="dist-value" id="dist-value">5km</div>
+        <button class="dist-all-btn" id="dist-all-btn" onclick="setAllDistance()">全部</button>
       </div>
       <div id="card-list"></div>
       <div id="card-empty" class="card-empty hidden"></div>

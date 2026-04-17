@@ -511,16 +511,34 @@ function switchView(view) {
 viewCardBtn.addEventListener('click', () => { if (currentView !== 'card') switchView('card'); });
 viewMapBtn.addEventListener('click', () => { if (currentView !== 'map') switchView('map'); });
 
-// ===== Distance Filter =====
-document.querySelectorAll('.dist-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const dist = Number(btn.dataset.dist);
-    distanceFilter = dist;
-    document.querySelectorAll('.dist-btn').forEach(b => b.classList.remove('dist-btn-active'));
-    btn.classList.add('dist-btn-active');
-    renderCards(true);
-  });
-});
+// ===== Distance Filter Slider =====
+const distSlider = document.getElementById('dist-slider');
+const distValueEl = document.getElementById('dist-value');
+const distAllBtn = document.getElementById('dist-all-btn');
+
+function formatDist(meters) {
+  if (meters >= 1000) return (meters / 1000).toFixed(meters % 1000 === 0 ? '0' : '1') + 'km';
+  return meters + 'm';
+}
+
+function applyDistance() {
+  distanceFilter = Number(distSlider.value) / 1000;
+  distValueEl.textContent = formatDist(distSlider.value);
+  distAllBtn.classList.remove('dist-all-btn-active');
+  renderCards(true);
+}
+
+function setAllDistance() {
+  distanceFilter = 0;
+  distValueEl.textContent = '全部';
+  distAllBtn.classList.add('dist-all-btn-active');
+  renderCards(true);
+}
+window.setAllDistance = setAllDistance;
+
+if (distSlider) {
+  distSlider.addEventListener('input', applyDistance);
+}
 
 // ===== Search =====
 const searchInput = document.getElementById('search-input');
