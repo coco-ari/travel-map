@@ -102,7 +102,7 @@ app.get('/api/shops', (req, res) => {
   // Attach cover photo to each shop
   for (const shop of shops) {
     const photos = db.getPhotosByShopId(shop.id);
-    shop.cover_photo = photos.length > 0 ? photos[0].url : null;
+    shop.cover_photo = photos.length > 0 ? photos[photos.length - 1].url : null;
   }
   res.json(shops);
 });
