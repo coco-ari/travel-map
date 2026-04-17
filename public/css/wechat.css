@@ -111,34 +111,43 @@ body::after {
   gap: 0;
 }
 
-.navbar-title-text {
+.navbar-title-text,
+.navbar-title-accent {
   font-family: var(--font-comic);
-  font-size: 30px;
+  font-size: 32px;
   font-style: italic;
   letter-spacing: 1px;
-  color: var(--comic-yellow);
-  -webkit-text-stroke: 2.5px var(--ink);
-  text-stroke: 2.5px var(--ink);
-  text-shadow:
-    3px 3px 0 var(--ink),
-    4px 4px 0 rgba(0,0,0,0.3);
   text-transform: uppercase;
   transform: rotate(-2deg);
+  -webkit-text-stroke: 0;
+}
+
+.navbar-title-text {
+  color: var(--paper);
+  text-shadow:
+    -3px -3px 0 var(--ink),
+    3px -3px 0 var(--ink),
+    -3px 3px 0 var(--ink),
+    3px 3px 0 var(--ink),
+    -3px 0 0 var(--ink),
+    3px 0 0 var(--ink),
+    0 -3px 0 var(--ink),
+    0 3px 0 var(--ink),
+    4px 4px 0 rgba(0,0,0,0.25);
 }
 
 .navbar-title-accent {
-  font-family: var(--font-comic);
-  font-size: 30px;
-  font-style: italic;
-  letter-spacing: 1px;
-  color: var(--comic-red);
-  -webkit-text-stroke: 2.5px var(--ink);
-  text-stroke: 2.5px var(--ink);
+  color: var(--comic-yellow);
   text-shadow:
+    -3px -3px 0 var(--ink),
+    3px -3px 0 var(--ink),
+    -3px 3px 0 var(--ink),
     3px 3px 0 var(--ink),
-    4px 4px 0 rgba(0,0,0,0.3);
-  text-transform: uppercase;
-  transform: rotate(-2deg);
+    -3px 0 0 var(--ink),
+    3px 0 0 var(--ink),
+    0 -3px 0 var(--ink),
+    0 3px 0 var(--ink),
+    4px 4px 0 rgba(0,0,0,0.25);
 }
 
 .navbar-right {
