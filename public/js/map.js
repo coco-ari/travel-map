@@ -139,9 +139,9 @@ function renderCards(reset) {
     shops.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
   }
   cardFilteredShops = shops;
-  container.innerHTML = '';
 
   if (shops.length === 0) {
+    container.innerHTML = '';
     container.classList.add('hidden');
     empty.classList.remove('hidden');
     empty.innerHTML = `
@@ -155,6 +155,7 @@ function renderCards(reset) {
   container.classList.remove('hidden');
   empty.classList.add('hidden');
 
+  // Clear only on reset/initial render
   if (reset || reset === undefined) {
     cardPage = 0;
     container.innerHTML = '';
@@ -206,8 +207,9 @@ function renderCards(reset) {
     if (!sentinel) {
       sentinel = document.createElement('div');
       sentinel.className = 'scroll-sentinel';
-      container.appendChild(sentinel);
     }
+    // Always move sentinel to end so it stays at the bottom
+    container.appendChild(sentinel);
     setupScrollSentinel(sentinel);
   } else {
     const sentinel = container.querySelector('.scroll-sentinel');
