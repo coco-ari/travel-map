@@ -69,41 +69,6 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-function openManualAdd() {
-  document.getElementById('manual-add-modal').classList.remove('hidden');
-}
-
-function closeManualAdd() {
-  document.getElementById('manual-add-modal').classList.add('hidden');
-  document.getElementById('manual-name').value = '';
-  document.getElementById('manual-lat').value = '';
-  document.getElementById('manual-lng').value = '';
-}
-
-async function submitManualAdd() {
-  const name = document.getElementById('manual-name').value.trim();
-  const lat = parseFloat(document.getElementById('manual-lat').value);
-  const lng = parseFloat(document.getElementById('manual-lng').value);
-
-  if (!name || isNaN(lat) || isNaN(lng)) {
-    alert('请填写完整的店名、纬度和经度');
-    return;
-  }
-
-  const res = await fetch('/api/shops', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, lat, lng }),
-  });
-
-  if (res.ok) {
-    closeManualAdd();
-    loadShops();
-  } else {
-    alert('添加失败');
-  }
-}
-
 function openDeleteSheet(id, name) {
   deleteTargetId = id;
   document.getElementById('delete-shop-name').textContent = name;
