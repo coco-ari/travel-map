@@ -132,6 +132,20 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+let showAll = false;
+
+window.toggleShowAll = async function() {
+  showAll = !showAll;
+  // Clear existing shop markers
+  Object.values(shopMarkers).forEach((m) => map.removeLayer(m));
+  shopMarkers = {};
+
+  // Reload markers with new filter
+  const res = await fetch(showAll ? '/api/shops' : '/api/shops?status=unvisited');
+  const shops = await res.json();
+  shops.forEach((shop) => addShopMarker(shop));
+};
+
 // ===== Public API =====
 window.markVisited = async function(id) {
   await fetch(`/api/shops/${id}/status`, {

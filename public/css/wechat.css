@@ -314,3 +314,18 @@ body {
   z-index: 1000;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
+
+/* ===== Map Toggle Label ===== */
+#show-all-label {
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ===== Leaflet Popup Overrides ===== */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+}
+
+.leaflet-popup-content {
+  margin: 12px;
+}
