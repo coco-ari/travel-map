@@ -493,7 +493,7 @@ function createShopPopup(shop) {
     <div class="shop-popup-name">${escapeHtml(shop.name)}</div>
     ${formatDistance(dist) ? `<div class="shop-popup-dist">${formatDistance(dist)}</div>` : ''}
     <div class="shop-popup-actions">
-      <button class="btn btn-primary btn-sm" data-action="toggleVisited" data-id="${shop.id}">${shop.status === 'visited' ? '未探' : '已探'}</button>
+      <button class="btn btn-primary btn-sm" data-action="toggleVisited" data-id="${shop.id}">${shop.status === 'visited' ? '已探' : '未探'}</button>
       <button class="btn btn-secondary btn-sm" data-action="showDetail" data-id="${shop.id}">详情</button>
       <button class="btn btn-secondary btn-sm" data-action="moveShop" data-id="${shop.id}">移动</button>
       <button class="btn btn-secondary btn-sm" data-action="navigateTo" data-lat="${shop.lat}" data-lng="${shop.lng}">导航</button>
@@ -801,7 +801,7 @@ window.toggleVisited = async function(id) {
     if (idx !== -1) allShops[idx] = { ...allShops[idx], status: newStatus };
     // Update popup button text
     const popupBtn = document.querySelector('.leaflet-popup .shop-popup-actions [data-action="toggleVisited"]');
-    if (popupBtn) popupBtn.textContent = newStatus === 'visited' ? '未探' : '已探';
+    if (popupBtn) popupBtn.textContent = newStatus === 'visited' ? '已探' : '未探';
     // Re-render marker with new color
     if (shopMarkers[id]) {
       map.removeLayer(shopMarkers[id]);
