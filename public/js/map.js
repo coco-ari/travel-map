@@ -464,24 +464,29 @@ function addShopMarker(shop) {
   const isVisited = shop.status === 'visited';
   const dist = getDistance(userLat, userLng, shop.lat, shop.lng);
   const markerColor = isVisited ? '#8B6FC0' : (dist <= 2000 ? '#E23636' : '#1E90FF');
-  const starSize = isVisited ? 0.8 : (dist <= 2000 ? 1.1 : 1);
-
-  // Comic starburst shape using SVG
-  const starPoints = '12,0 14.5,7.5 22,7.5 16,12 18,20 12,15 6,20 8,12 2,7.5 9.5,7.5';
+  const boltSize = isVisited ? 0.85 : (dist <= 2000 ? 1.15 : 1);
 
   const icon = L.divIcon({
     className: 'shop-pin',
     html: `
-      <div class="shop-marker-wrapper" style="transform:scale(${starSize});transform-origin:center bottom;">
-        <svg class="shop-marker-icon" width="24" height="22" viewBox="0 0 24 22">
-          <polygon points="${starPoints}"
-            fill="${markerColor}" stroke="#000" stroke-width="2" stroke-linejoin="round"/>
+      <div class="shop-marker-wrapper" style="transform:scale(${boltSize});transform-origin:center bottom;">
+        <svg class="shop-marker-icon" width="30" height="24" viewBox="0 0 30 24">
+          <defs>
+            <filter id="boltShadow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="2" dy="2" stdDeviation="1" flood-color="#000" flood-opacity="0.5"/>
+            </filter>
+          </defs>
+          <path d="M18,1 L8,13 15,13 L10,23 L26,12 L17,12 Z"
+            fill="${markerColor}" stroke="#000" stroke-width="2.5" stroke-linejoin="round"
+            filter="url(#boltShadow)"/>
+          <path d="M18,1 L8,13 15,13 L10,23 L26,12 L17,12 Z"
+            fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
         </svg>
         <div class="shop-marker-label">${escapeHtml(shop.name)}</div>
       </div>
     `,
-    iconSize: [120, 56],
-    iconAnchor: [60, 44],
+    iconSize: [120, 60],
+    iconAnchor: [60, 46],
   });
 
   const marker = L.marker([shop.lat, shop.lng], { icon }).addTo(map);

@@ -789,7 +789,6 @@ body::after {
 .shop-marker-icon {
   display: block;
   margin: 0 auto;
-  filter: drop-shadow(2px 3px 0 var(--ink));
   transition: transform 0.15s;
 }
 
