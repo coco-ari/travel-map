@@ -127,8 +127,6 @@ function renderCards() {
   container.innerHTML = '';
 
   let shops = [...allShops];
-
-  // Sort by distance when location available
   if (userLat && userLng) {
     shops.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
   }
@@ -137,8 +135,9 @@ function renderCards() {
     container.classList.add('hidden');
     empty.classList.remove('hidden');
     empty.innerHTML = `
-      <div class="card-empty-emoji">🔍</div>
-      <div>没有找到相关店铺</div>
+      <span class="card-empty-icon">🔍</span>
+      <div class="card-empty-text">没有找到相关店铺</div>
+      <div class="card-empty-sub">试试其他关键词或切换显示全部</div>
     `;
     return;
   }
@@ -157,20 +156,23 @@ function renderCards() {
     card.className = 'shop-card';
     card.innerHTML = `
       <div class="card-image">
+        <div class="card-image-bg"></div>
         <span class="card-image-emoji">${emoji}</span>
-        <span class="card-status-badge ${shop.status === 'visited' ? 'card-badge-visited' : 'card-badge-unvisited'}">
-          ${shop.status === 'visited' ? '已去' : '未去'}
-        </span>
-        ${rating > 0 ? `<span class="card-rating-badge">⭐ ${rating}</span>` : ''}
+        <span class="card-status-dot ${shop.status === 'visited' ? 'visited' : 'unvisited'}"></span>
+        ${rating > 0 ? `<span class="card-rating">★ ${rating}</span>` : ''}
       </div>
       <div class="card-body">
         <div class="card-name">${escapeHtml(shop.name)}</div>
-        <div class="card-meta">
+        <div class="card-footer">
           ${distStr ? `<span class="card-dist">📍 ${distStr}</span>` : '<span></span>'}
           ${tag ? `<span class="card-tag">${escapeHtml(tag)}</span>` : ''}
         </div>
       </div>
     `;
+
+    // Set gradient type
+    const cardImage = card.querySelector('.card-image');
+    cardImage.setAttribute('data-type', tag || 'default');
 
     card.addEventListener('click', () => openShopCard(shop));
     container.appendChild(card);
