@@ -315,9 +315,6 @@ async function openShopCard(shop) {
     }
   }
 
-  // Helper to update footer button text after toggle
-  const statusBtnText = (s) => s === 'visited' ? '未探店' : '已探店';
-
   detail.innerHTML = `
     <div class="modal">
       <div class="modal-header">${escapeHtml(currentShop.name)}</div>
@@ -433,9 +430,9 @@ async function toggleStatus(detail, shopId) {
     if (idx !== -1) allShops[idx] = updated;
     // Update UI without closing
     const statusText = detail.querySelector('.detail-status');
-    if (statusText) statusText.textContent = newStatus === 'visited' ? '已探店' : '未探店';
+    if (statusText) statusText.textContent = newStatus === 'visited' ? '已探' : '未探';
     const btn = detail.querySelector('[data-action="toggleStatus"]');
-    if (btn) btn.textContent = newStatus === 'visited' ? '未探店' : '已探店';
+    if (btn) btn.textContent = newStatus === 'visited' ? '未探' : '已探';
     // Refresh markers and cards
     await loadShops();
   }
@@ -790,7 +787,18 @@ window.toggleVisited = async function(id) {
     body: JSON.stringify({ status: newStatus }),
   });
   if (res.ok) {
-    await loadShops();
+    // Update local data
+    const idx = allShops.findIndex(s => s.id === id);
+    if (idx !== -1) allShops[idx] = { ...allShops[idx], status: newStatus };
+    // Update popup text and button if open
+    const popup = document.querySelector('.leaflet-popup .shop-popup-name');
+    const marker = shopMarkers[id];
+    if (marker) {
+      marker._shopStatus = newStatus === 'visited' ? '已探' : '未探';
+      marker._shopData.status = newStatus;
+    }
+    // Update cards
+    if (currentView === 'card') renderCards(true);
   }
 };
 
