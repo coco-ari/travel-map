@@ -446,15 +446,97 @@ function switchView(view) {
 viewCardBtn.addEventListener('click', () => { if (currentView !== 'card') switchView('card'); });
 viewMapBtn.addEventListener('click', () => { if (currentView !== 'map') switchView('map'); });
 
-// ===== Search (debounced server-side) =====
+// ===== Search =====
 const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+
 if (searchInput) {
   let searchTimer;
   searchInput.addEventListener('input', (e) => {
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => loadShops(), 300);
+    searchTimer = setTimeout(() => performSearch(e.target.value.trim()), 200);
+  });
+  searchInput.addEventListener('focus', () => {
+    if (searchInput.value.trim()) showSearchResults(allShops.filter(s => s.name.includes(searchInput.value.trim())));
   });
 }
+
+function performSearch(keyword) {
+  if (!keyword) {
+    searchResults.classList.add('hidden');
+    searchResults.innerHTML = '';
+    // Reset to show all shops
+    loadShops();
+    return;
+  }
+
+  // Fetch search results from server
+  const url = `/api/shops?search=${encodeURIComponent(keyword)}&status=all`;
+  fetch(url)
+    .then(res => res.json())
+    .then(shops => showSearchResults(shops));
+}
+
+function showSearchResults(shops) {
+  if (shops.length === 0) {
+    searchResults.innerHTML = '<div class="search-empty">没有找到相关店铺</div>';
+  } else {
+    searchResults.innerHTML = shops.map(shop => {
+      const dist = getDistance(userLat, userLng, shop.lat, shop.lng);
+      const distStr = formatDistance(dist);
+      const statusText = shop.status === 'visited' ? '已吃' : '未去';
+      return `
+        <div class="search-result-item" data-id="${shop.id}">
+          <div class="search-result-name">${escapeHtml(shop.name)}</div>
+          <div class="search-result-info">${statusText}${distStr ? ' · ' + distStr : ''}</div>
+        </div>
+      `;
+    }).join('');
+
+    // Click handler - fly to shop and open popup
+    searchResults.querySelectorAll('.search-result-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const id = Number(item.dataset.id);
+        const shop = allShops.find(s => s.id === id);
+        if (shop) {
+          flyToShop(shop);
+        }
+        closeSearchResults();
+        searchInput.value = '';
+      });
+    });
+  }
+  searchResults.classList.remove('hidden');
+}
+
+function closeSearchResults() {
+  searchResults.classList.add('hidden');
+  searchResults.innerHTML = '';
+}
+
+function flyToShop(shop) {
+  // Switch to map view if in card view
+  if (currentView === 'card') switchView('map');
+
+  // Fly to the shop's location
+  initMap();
+  map.flyTo([shop.lat, shop.lng], 16, { duration: 0.5 });
+
+  // Open popup if marker exists
+  setTimeout(() => {
+    const marker = shopMarkers[shop.id];
+    if (marker) {
+      marker.openPopup();
+    }
+  }, 600);
+}
+
+// Close search results when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.search-bar')) {
+    closeSearchResults();
+  }
+});
 
 // ===== More Menu =====
 window.openMoreMenu = function() {
