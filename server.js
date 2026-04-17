@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const db = require('./db');
 const app = express();
 const PORT = process.env.PORT || 9800;
 
@@ -111,7 +112,17 @@ app.delete('/api/photos/:id', (req, res) => {
 
 module.exports = app;
 
+// Auto-seed on first run if database is empty
 if (require.main === module) {
+  const shops = db.getAll();
+  if (shops.length === 0) {
+    const { seedRestaurants } = require('./seed-data');
+    for (const r of seedRestaurants) {
+      db.create(r);
+    }
+    console.log(`Auto-seeded ${seedRestaurants.length} restaurants.`);
+  }
+
   app.listen(PORT, () => {
     console.log(`Travel Map server running on http://localhost:${PORT}`);
   });
