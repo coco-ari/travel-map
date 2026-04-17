@@ -471,16 +471,15 @@ function addShopMarker(shop) {
     html: `
       <div class="shop-marker-wrapper" style="transform:scale(${boltSize});transform-origin:center bottom;">
         <svg class="shop-marker-icon" width="30" height="24" viewBox="0 0 30 24">
-          <defs>
-            <filter id="boltShadow" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="2" dy="2" stdDeviation="1" flood-color="#000" flood-opacity="0.5"/>
-            </filter>
-          </defs>
+          <!-- Shadow -->
           <path d="M18,1 L8,13 15,13 L10,23 L26,12 L17,12 Z"
-            fill="${markerColor}" stroke="#000" stroke-width="2.5" stroke-linejoin="round"
-            filter="url(#boltShadow)"/>
+            fill="#000" stroke="none" transform="translate(2,2)" opacity="0.3"/>
+          <!-- Main shape -->
           <path d="M18,1 L8,13 15,13 L10,23 L26,12 L17,12 Z"
-            fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+            fill="${markerColor}" stroke="#000" stroke-width="2.5" stroke-linejoin="round"/>
+          <!-- White inner stroke -->
+          <path d="M18,1 L8,13 15,13 L10,23 L26,12 L17,12 Z"
+            fill="none" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>
         </svg>
         <div class="shop-marker-label">${escapeHtml(shop.name)}</div>
       </div>
