@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>店铺管理</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/wechat.css">
+</head>
+<body>
+  <header class="navbar">
+    <a href="/" class="navbar-btn" style="left:12px;right:auto;">返回地图</a>
+    <span class="navbar-title">店铺管理</span>
+    <span class="navbar-btn" onclick="openManualAdd()">添加</span>
+  </header>
+
+  <main class="list" id="shop-list"></main>
+
+  <!-- Manual Add Modal -->
+  <div id="manual-add-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">手动添加店铺</div>
+      <div class="modal-body">
+        <input id="manual-name" class="input" placeholder="店名" style="margin-bottom:12px;">
+        <input id="manual-lat" class="input" placeholder="纬度" style="margin-bottom:12px;" type="number" step="0.000001">
+        <input id="manual-lng" class="input" placeholder="经度" type="number" step="0.000001">
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeManualAdd()">取消</button>
+        <button class="btn btn-confirm" onclick="submitManualAdd()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete ActionSheet -->
+  <div id="delete-actionsheet" class="actionsheet-overlay hidden">
+    <div>
+      <div class="actionsheet">
+        <div class="modal-body text-center" style="padding:16px;">
+          确定删除 <strong id="delete-shop-name"></strong> 吗？
+        </div>
+        <div class="modal-footer">
+          <button class="btn" onclick="closeDeleteSheet()">取消</button>
+          <button class="btn btn-danger" onclick="confirmDelete()">删除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
