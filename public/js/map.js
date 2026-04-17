@@ -425,16 +425,22 @@ async function toggleStatus(detail, shopId) {
     body: JSON.stringify({ status: newStatus }),
   });
   if (res.ok) {
-    const updated = await res.json();
+    // Update local data
     const idx = allShops.findIndex(s => s.id === shopId);
-    if (idx !== -1) allShops[idx] = updated;
-    // Update UI without closing
-    const statusText = detail.querySelector('.detail-status');
+    if (idx !== -1) allShops[idx] = { ...allShops[idx], status: newStatus };
+    // Update UI immediately
+    const statusText = detail.querySelector('.detail-status-text');
     if (statusText) statusText.textContent = newStatus === 'visited' ? '已探' : '未探';
     const btn = detail.querySelector('[data-action="toggleStatus"]');
     if (btn) btn.textContent = newStatus === 'visited' ? '未探' : '已探';
-    // Refresh markers and cards
-    await loadShops();
+    // Re-render marker with new color
+    if (shopMarkers[shopId]) {
+      map.removeLayer(shopMarkers[shopId]);
+      delete shopMarkers[shopId];
+      addShopMarker(allShops[idx]);
+    }
+    // Update cards if in card view
+    if (currentView === 'card') renderCards(true);
   }
 }
 
