@@ -18,7 +18,6 @@ let userLat = null;
 let userLng = null;
 let userMarker = null;
 let shopMarkers = {};
-let showAll = false;
 let allShops = [];
 let photoCache = {}; // Cache photos by shop id to avoid re-fetching
 let currentView = 'map'; // 'card' or 'map' — default to map
@@ -99,8 +98,7 @@ function addLocationMarker(lat, lng) {
 // ===== Shop Loading =====
 async function loadShops() {
   const q = document.getElementById('search-input')?.value?.trim() || '';
-  let url = showAll ? '/api/shops' : '/api/shops?status=unvisited';
-  if (q) url = `/api/shops?search=${encodeURIComponent(q)}&status=${showAll ? 'all' : 'unvisited'}`;
+  let url = q ? `/api/shops?search=${encodeURIComponent(q)}&status=all` : '/api/shops';
 
   const res = await fetch(url);
   allShops = await res.json();
@@ -637,18 +635,6 @@ document.addEventListener('click', (e) => {
   }
 });
 
-window.toggleVisitedFilter = function() {
-  showAll = !showAll;
-  closeMoreMenu();
-  loadShops();
-  updateMoreMenuLabel();
-};
-
-function updateMoreMenuLabel() {
-  const el = document.getElementById('more-visited-label');
-  if (el) el.textContent = showAll ? '隐藏已吃' : '显示已吃';
-}
-
 // ===== Public API =====
 window.markVisited = async function(id) {
   await fetch(`/api/shops/${id}/status`, {
@@ -898,7 +884,6 @@ initMap = function() {
 initMap();
 setTimeout(() => { map.invalidateSize(); renderMarkers(); }, 200);
 initLocation();
-updateMoreMenuLabel();
 
 // Sync with admin page (delete, add, etc.)
 const syncChannel = new BroadcastChannel('travel-map-sync');
