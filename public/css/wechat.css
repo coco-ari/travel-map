@@ -34,7 +34,7 @@
   --shadow-lg: 0 10px 30px rgba(45,42,38,0.10);
 
   --nav-h: 52px;
-  --search-h: 64px; /* navbar + search bar total */
+  --search-h: 58px; /* search bar visual height: 8+42+8 */
 }
 
 html, body {
@@ -282,7 +282,7 @@ body::before {
 /* Both views start below navbar + search */
 #card-view, #map-container {
   position: fixed;
-  top: calc(var(--nav-h) + var(--search-h) - 8px);
+  top: calc(var(--nav-h) + var(--search-h));
   left: 0; right: 0; bottom: 0;
 }
 
@@ -290,7 +290,7 @@ body::before {
 #card-view {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 4px 12px 80px;
+  padding: 0 12px 80px;
   transition: opacity 0.25s ease;
   background: linear-gradient(160deg, var(--bg) 0%, var(--bg-warm) 50%, #F0E6DC 100%);
 }
@@ -453,7 +453,7 @@ body::before {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 8px 4px 4px;
+  padding: 6px 4px 6px;
   background: linear-gradient(160deg, var(--bg) 0%, var(--bg-warm) 50%, #F0E6DC 100%);
 }
 
