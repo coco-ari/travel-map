@@ -432,7 +432,10 @@ async function toggleStatus(detail, shopId) {
     const statusText = detail.querySelector('.detail-status-text');
     if (statusText) statusText.textContent = newStatus === 'visited' ? '已探' : '未探';
     const btn = detail.querySelector('[data-action="toggleStatus"]');
-    if (btn) btn.textContent = newStatus === 'visited' ? '未探' : '已探';
+    if (btn) {
+      const btnText = detail.querySelector('[data-action="toggleStatus"] .detail-status-text');
+      if (btnText) btnText.textContent = newStatus === 'visited' ? '已探' : '未探';
+    }
     // Re-render marker with new color
     if (shopMarkers[shopId]) {
       map.removeLayer(shopMarkers[shopId]);
