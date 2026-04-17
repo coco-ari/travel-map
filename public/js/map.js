@@ -664,6 +664,15 @@ if (searchInput) {
 }
 
 function performSearch(keyword) {
+  // In card view: filter cards in place
+  if (currentView === 'card') {
+    cardFilteredShops = keyword
+      ? allShops.filter(s => s.name.includes(keyword))
+      : [...allShops];
+    renderCards(true);
+    return;
+  }
+
   if (!keyword) {
     searchResults.classList.add('hidden');
     searchResults.innerHTML = '';
@@ -672,7 +681,7 @@ function performSearch(keyword) {
     return;
   }
 
-  // Fetch search results from server
+  // In map view: show dropdown results
   const url = `/api/shops?search=${encodeURIComponent(keyword)}&status=all`;
   fetch(url)
     .then(res => res.json())
