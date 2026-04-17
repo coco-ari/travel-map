@@ -839,16 +839,14 @@ window.uploadPhoto = async function(shopId, input) {
     const res = await fetch(`/api/shops/${shopId}/photo`, { method: 'POST', body: formData });
     if (res.ok) {
       const photo = await res.json();
-      // Update local shop data with cover photo
+      // Only set cover photo if this is the first photo
       const idx = allShops.findIndex(s => s.id === shopId);
-      if (idx !== -1) {
+      if (idx !== -1 && !allShops[idx].cover_photo) {
         allShops[idx].cover_photo = photo.url;
+        updateCardCover(shopId, photo.url);
       }
       // Invalidate photo cache for this shop
       delete photoCache[shopId];
-
-      // Update card cover in card view
-      updateCardCover(shopId, photo.url);
 
       document.getElementById('shop-detail-modal')?.remove();
       openShopCard(allShops[idx] || { id: shopId });
