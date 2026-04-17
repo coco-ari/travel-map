@@ -322,17 +322,27 @@ async function openShopCard(shop) {
     <div class="modal">
       <div class="modal-header">${escapeHtml(currentShop.name)}</div>
       <div class="modal-body">
-        <div style="margin-bottom:8px;"><strong>坐标：</strong>${currentShop.lat.toFixed(4)}, ${currentShop.lng.toFixed(4)}</div>
-        ${distStr ? `<div style="margin-bottom:8px;"><strong>距离：</strong>${distStr}</div>` : ''}
-        <div style="margin-bottom:8px;"><strong>状态：</strong><span class="detail-status">${currentShop.status === 'visited' ? '已去' : '未去'}</span></div>
-        ${currentShop.tags ? `<div style="margin-bottom:8px;"><strong>标签：</strong>${currentShop.tags.split(',').filter(Boolean).map(t => `<span class="card-tag" style="margin-right:4px;">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+        <div class="detail-info">
+          <div class="detail-info-row">
+            <span class="detail-info-label">距离</span>
+            <span class="detail-info-value">${distStr || '—'}</span>
+          </div>
+          <div class="detail-info-row">
+            <span class="detail-info-label">状态</span>
+            <span class="detail-status">${currentShop.status === 'visited' ? '已去' : '未去'}</span>
+          </div>
+          ${currentShop.tags ? `<div class="detail-info-row">
+            <span class="detail-info-label">标签</span>
+            <span class="detail-info-value">${currentShop.tags.split(',').filter(Boolean).map(t => `<span class="card-tag">${escapeHtml(t)}</span>`).join(' ')}</span>
+          </div>` : ''}
+        </div>
         <div class="rating-section">
           <strong>评分：</strong>
           <div class="stars" data-shop-id="${currentShop.id}" data-rating="${currentShop.rating || 0}">
             ${[1,2,3,4,5].map(i => `<span class="star${i <= (currentShop.rating || 0) ? ' star-active' : ''}" data-value="${i}">★</span>`).join('')}
           </div>
         </div>
-        <div class="notes-section" style="margin-top:8px;">
+        <div class="notes-section">
           <textarea id="shop-notes" class="notes-input" placeholder="添加备注..." maxlength="200">${escapeHtml(currentShop.notes || '')}</textarea>
         </div>
         ${photos.length > 0 ? `
@@ -344,19 +354,17 @@ async function openShopCard(shop) {
             }).join('')}
           </div>
         </div>` : '<div class="no-photos">暂无照片</div>'}
-        <div class="photo-actions">
-          <label class="photo-upload-btn">
-            📷 拍照上传
-            <input type="file" accept="image/*" capture="environment" id="photo-input" onchange="uploadPhoto(${currentShop.id}, this)" hidden>
-          </label>
-        </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-action="navigateTo" data-lat="${currentShop.lat}" data-lng="${currentShop.lng}">导航</button>
-        <button class="btn btn-primary" data-action="saveAndClose">保存并关闭</button>
+      <div class="detail-actions">
+        <label class="detail-action-btn photo-btn">
+          📷 拍照
+          <input type="file" accept="image/*" capture="environment" onchange="uploadPhoto(${currentShop.id}, this)" hidden>
+        </label>
+        <button class="detail-action-btn" data-action="navigateTo" data-lat="${currentShop.lat}" data-lng="${currentShop.lng}">🧭 导航</button>
+        <button class="detail-action-btn btn-save-close" data-action="saveAndClose">✓ 保存</button>
       </div>
       <div class="detail-toggle-row">
-        <button class="btn btn-detail-status" data-action="toggleStatus" data-id="${currentShop.id}">${statusBtnText(currentShop.status)}</button>
+        <button class="btn-detail-status" data-action="toggleStatus" data-id="${currentShop.id}">${statusBtnText(currentShop.status)}</button>
       </div>
     </div>
   `;
