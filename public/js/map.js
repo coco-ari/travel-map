@@ -315,13 +315,16 @@ async function openShopCard(shop) {
     }
   }
 
+  // Helper to update footer button text after toggle
+  const statusBtnText = (s) => s === 'visited' ? '设为未去' : '已吃';
+
   detail.innerHTML = `
     <div class="modal">
       <div class="modal-header">${escapeHtml(currentShop.name)}</div>
       <div class="modal-body">
         <div style="margin-bottom:8px;"><strong>坐标：</strong>${currentShop.lat.toFixed(4)}, ${currentShop.lng.toFixed(4)}</div>
         ${distStr ? `<div style="margin-bottom:8px;"><strong>距离：</strong>${distStr}</div>` : ''}
-        <div style="margin-bottom:8px;"><strong>状态：</strong>${currentShop.status === 'visited' ? '已去' : '未去'}</div>
+        <div style="margin-bottom:8px;"><strong>状态：</strong><span class="detail-status">${currentShop.status === 'visited' ? '已去' : '未去'}</span></div>
         ${currentShop.tags ? `<div style="margin-bottom:8px;"><strong>标签：</strong>${currentShop.tags.split(',').filter(Boolean).map(t => `<span class="card-tag" style="margin-right:4px;">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
         <div class="rating-section">
           <strong>评分：</strong>
@@ -349,9 +352,11 @@ async function openShopCard(shop) {
         </div>
       </div>
       <div class="modal-footer">
-        ${currentShop.status !== 'visited' ? `<button class="btn btn-primary" data-action="markVisited" data-id="${currentShop.id}">已吃</button>` : `<button class="btn btn-secondary" data-action="unvisit" data-id="${currentShop.id}">设为未去</button>`}
-        <button class="btn btn-secondary" data-action="navigateTo" data-lat="${currentShop.lat}" data-lng="${currentShop.lng}">导航</button>
+        <button class="btn btn-secondary btn-sm" data-action="navigateTo" data-lat="${currentShop.lat}" data-lng="${currentShop.lng}">导航</button>
         <button class="btn btn-primary" data-action="saveAndClose">保存并关闭</button>
+      </div>
+      <div class="detail-toggle-row">
+        <button class="btn btn-detail-status" data-action="toggleStatus" data-id="${currentShop.id}">${statusBtnText(currentShop.status)}</button>
       </div>
     </div>
   `;
@@ -372,9 +377,9 @@ async function openShopCard(shop) {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     const action = btn.dataset.action;
-    if (action === 'markVisited') markVisited(currentShop.id);
-    else if (action === 'unvisit') unvisitShop(currentShop.id);
-    else if (action === 'navigateTo') navigateTo(currentShop.lat, currentShop.lng);
+    if (action === 'toggleStatus') {
+      toggleStatus(detail, currentShop.id);
+    } else if (action === 'navigateTo') navigateTo(currentShop.lat, currentShop.lng);
     else if (action === 'saveAndClose') saveAndClose(currentShop.id, detail);
     else if (action === 'closeModal') detail.remove();
   });
@@ -403,6 +408,29 @@ async function saveAndClose(shopId, detail) {
   }
   detail.remove();
   if (currentView === 'card') renderCards();
+}
+
+async function toggleStatus(detail, shopId) {
+  const shop = allShops.find(s => s.id === shopId);
+  if (!shop) return;
+  const newStatus = shop.status === 'visited' ? 'unvisited' : 'visited';
+  const res = await fetch(`/api/shops/${shopId}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: newStatus }),
+  });
+  if (res.ok) {
+    const updated = await res.json();
+    const idx = allShops.findIndex(s => s.id === shopId);
+    if (idx !== -1) allShops[idx] = updated;
+    // Update UI without closing
+    const statusText = detail.querySelector('.detail-status');
+    if (statusText) statusText.textContent = newStatus === 'visited' ? '已去' : '未去';
+    const btn = detail.querySelector('[data-action="toggleStatus"]');
+    if (btn) btn.textContent = newStatus === 'visited' ? '设为未去' : '已吃';
+    // Refresh markers and cards
+    await loadShops();
+  }
 }
 
 // ===== Map View =====
