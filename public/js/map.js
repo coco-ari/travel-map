@@ -22,6 +22,7 @@ let showAll = false;
 let allShops = [];
 let photoCache = {}; // Cache photos by shop id to avoid re-fetching
 let currentView = 'map'; // 'card' or 'map' — default to map
+let distanceFilter = 5; // Default 5km for card view, options: 1, 3, 5, 10
 
 // ===== Card Pagination =====
 const CARD_PAGE_SIZE = 20;
@@ -133,9 +134,10 @@ function renderCards(reset) {
   const container = document.getElementById('card-list');
   const empty = document.getElementById('card-empty');
 
-  // Filter and sort
+  // Filter and sort by distance
   let shops = [...allShops];
   if (userLat && userLng) {
+    shops = shops.filter(s => getDistance(userLat, userLng, s.lat, s.lng) <= distanceFilter * 1000);
     shops.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
   }
   cardFilteredShops = shops;
@@ -506,6 +508,17 @@ function switchView(view) {
 
 viewCardBtn.addEventListener('click', () => { if (currentView !== 'card') switchView('card'); });
 viewMapBtn.addEventListener('click', () => { if (currentView !== 'map') switchView('map'); });
+
+// ===== Distance Filter =====
+document.querySelectorAll('.dist-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const dist = Number(btn.dataset.dist);
+    distanceFilter = dist;
+    document.querySelectorAll('.dist-btn').forEach(b => b.classList.remove('dist-btn-active'));
+    btn.classList.add('dist-btn-active');
+    renderCards(true);
+  });
+});
 
 // ===== Search =====
 const searchInput = document.getElementById('search-input');
