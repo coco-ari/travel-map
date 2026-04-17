@@ -1210,7 +1210,7 @@ body::before {
 
 /* ===== Admin List ===== */
 .list {
-  padding: 70px 16px 100px;
+  padding: 8px 16px 100px;
   display: flex;
   flex-direction: column;
   gap: 10px;

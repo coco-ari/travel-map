@@ -1,10 +1,35 @@
 let deleteTargetId = null;
+let allShops = [];
+let userLat = null;
+let userLng = null;
+let adminDistanceFilter = 0; // 0 = all
+
+function getDistance(lat1, lng1, lat2, lng2) {
+  if (lat1 == null || lng1 == null) return Infinity;
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 async function loadShops() {
   const res = await fetch('/api/shops');
-  const shops = await res.json();
+  allShops = await res.json();
+  renderShops();
+}
+
+function renderShops() {
   const container = document.getElementById('shop-list');
   container.innerHTML = '';
+
+  let shops = [...allShops];
+
+  // Filter by distance
+  if (adminDistanceFilter > 0 && userLat && userLng) {
+    shops = shops.filter(s => getDistance(userLat, userLng, s.lat, s.lng) <= adminDistanceFilter);
+    shops.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
+  }
 
   if (shops.length === 0) {
     container.innerHTML = '<div class="list-item text-center" style="color:#999;padding:40px 16px;">暂无店铺记录</div>';
@@ -14,11 +39,14 @@ async function loadShops() {
   shops.forEach((shop) => {
     const item = document.createElement('div');
     item.className = 'list-item';
+    const dist = getDistance(userLat, userLng, shop.lat, shop.lng);
+    const distStr = dist < Infinity ? (dist < 1000 ? Math.round(dist) + 'm' : (dist / 1000).toFixed(1) + 'km') : '';
     item.innerHTML = `
       <div class="list-item-title">
         ${escapeHtml(shop.name)}
         <span style="float:right;font-size:12px;color:${shop.status === 'visited' ? '#B0B0B0' : '#07C160'};">
           ${shop.status === 'visited' ? '已去' : '未去'}
+          ${distStr ? ' · ' + distStr : ''}
         </span>
       </div>
       <div class="list-item-meta">
@@ -28,7 +56,6 @@ async function loadShops() {
         <button class="btn btn-secondary btn-delete" style="font-size:13px;padding:4px 12px;" data-id="${shop.id}" data-name="${escapeHtml(shop.name)}">删除</button>
       </div>
     `;
-    // Use addEventListener to prevent XSS via onclick
     item.querySelector('.btn-delete').addEventListener('click', () => {
       openDeleteSheet(Number(shop.id), shop.name);
     });
@@ -108,6 +135,25 @@ async function confirmDelete() {
   } else {
     alert('删除失败');
   }
+}
+
+// Distance filter pills
+document.querySelectorAll('.dist-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    adminDistanceFilter = Number(pill.dataset.dist);
+    document.querySelectorAll('.dist-pill').forEach(p => p.classList.remove('dist-pill-active'));
+    pill.classList.add('dist-pill-active');
+    renderShops();
+  });
+});
+
+// Get user location for distance filtering
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+    (pos) => { userLat = pos.coords.latitude; userLng = pos.coords.longitude; },
+    () => {},
+    { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+  );
 }
 
 // Init
