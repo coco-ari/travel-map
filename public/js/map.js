@@ -793,9 +793,12 @@ window.toggleVisited = async function(id) {
     // Update popup button text
     const popupBtn = document.querySelector('.leaflet-popup .shop-popup-actions [data-action="toggleVisited"]');
     if (popupBtn) popupBtn.textContent = newStatus === 'visited' ? '未探' : '已探';
-    // Update marker status
-    const marker = shopMarkers[id];
-    if (marker) marker._shopStatus = newStatus === 'visited' ? '已探' : '未探';
+    // Re-render marker with new color
+    if (shopMarkers[id]) {
+      map.removeLayer(shopMarkers[id]);
+      delete shopMarkers[id];
+      addShopMarker(allShops[idx]);
+    }
     // Update cards if in card view
     if (currentView === 'card') renderCards(true);
   }
