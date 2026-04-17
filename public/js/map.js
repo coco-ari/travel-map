@@ -679,3 +679,11 @@ initMap = function() {
 initMap();
 setTimeout(() => { map.invalidateSize(); renderMarkers(); }, 200);
 initLocation();
+
+// Sync with admin page (delete, add, etc.)
+const syncChannel = new BroadcastChannel('travel-map-sync');
+syncChannel.addEventListener('message', (e) => {
+  if (e.data && e.data.action === 'shop-deleted') {
+    loadShops();
+  }
+});

@@ -98,6 +98,11 @@ async function confirmDelete() {
 
   const res = await fetch(`/api/shops/${deleteTargetId}`, { method: 'DELETE' });
   if (res.ok) {
+    // Notify map page to refresh
+    const bc = new BroadcastChannel('travel-map-sync');
+    bc.postMessage({ action: 'shop-deleted', id: deleteTargetId });
+    bc.close();
+
     closeDeleteSheet();
     loadShops();
   } else {
