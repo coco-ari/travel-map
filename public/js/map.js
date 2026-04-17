@@ -20,7 +20,15 @@ let userMarker = null;
 let shopMarkers = {};
 let showAll = false;
 let allShops = [];
+let photoCache = {}; // Cache photos by shop id to avoid re-fetching
 let currentView = 'map'; // 'card' or 'map' — default to map
+
+// ===== Card Pagination =====
+const CARD_PAGE_SIZE = 20;
+let cardPage = 0;
+let cardFilteredShops = [];
+let cardLoading = false;
+let cardHasMore = false;
 
 // ===== Food emoji mapping =====
 function getFoodEmoji(name) {
@@ -121,15 +129,17 @@ function escapeHtml(text) {
 }
 
 // ===== Card View =====
-function renderCards() {
+function renderCards(reset) {
   const container = document.getElementById('card-list');
   const empty = document.getElementById('card-empty');
-  container.innerHTML = '';
 
+  // Filter and sort
   let shops = [...allShops];
   if (userLat && userLng) {
     shops.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
   }
+  cardFilteredShops = shops;
+  container.innerHTML = '';
 
   if (shops.length === 0) {
     container.classList.add('hidden');
@@ -145,7 +155,17 @@ function renderCards() {
   container.classList.remove('hidden');
   empty.classList.add('hidden');
 
-  shops.forEach((shop, index) => {
+  if (reset || reset === undefined) {
+    cardPage = 0;
+    container.innerHTML = '';
+  }
+
+  const start = cardPage * CARD_PAGE_SIZE;
+  const end = Math.min(start + CARD_PAGE_SIZE, shops.length);
+  cardHasMore = end < shops.length;
+
+  for (let i = start; i < end; i++) {
+    const shop = shops[i];
     const dist = getDistance(userLat, userLng, shop.lat, shop.lng);
     const distStr = formatDistance(dist);
     const emoji = getFoodEmoji(shop.name);
@@ -154,7 +174,7 @@ function renderCards() {
 
     const card = document.createElement('div');
     card.className = 'shop-card';
-    card.style.animationDelay = `${index * 0.06}s`;
+    card.style.animationDelay = '0s';
     card.innerHTML = `
       <div class="card-image">
         <div class="card-image-bg"></div>
@@ -171,16 +191,31 @@ function renderCards() {
       </div>
     `;
 
-    // Set gradient type
     const cardImage = card.querySelector('.card-image');
     cardImage.setAttribute('data-type', tag || 'default');
 
     card.addEventListener('click', () => openShopCard(shop));
     container.appendChild(card);
-  });
+  }
 
-  // Add parallax scroll effect
+  // Add load-more trigger
+  if (cardHasMore) {
+    const loadMore = document.createElement('div');
+    loadMore.className = 'card-load-more';
+    loadMore.textContent = '加载更多';
+    loadMore.addEventListener('click', loadMoreCards);
+    container.appendChild(loadMore);
+  }
+
   setupCardParallax();
+}
+
+async function loadMoreCards() {
+  if (cardLoading || !cardHasMore) return;
+  cardLoading = true;
+  cardPage++;
+  renderCards(false);
+  cardLoading = false;
 }
 
 // ===== Parallax Scroll Effect =====
@@ -227,17 +262,9 @@ function handleCardScroll() {
 }
 
 async function openShopCard(shop) {
-  // Fetch latest data from server to ensure we show current state
-  const res = await fetch(`/api/shops/${shop.id}`);
-  let currentShop = shop;
-  if (res.ok) {
-    currentShop = await res.json();
-    // Update local data
-    const idx = allShops.findIndex(s => s.id === shop.id);
-    if (idx !== -1) {
-      allShops[idx] = currentShop;
-    }
-  }
+  // Use local data - no server fetch needed
+  const idx = allShops.findIndex(s => s.id === shop.id);
+  const currentShop = idx !== -1 ? allShops[idx] : shop;
 
   const detail = document.createElement('div');
   detail.className = 'modal-overlay';
@@ -245,12 +272,21 @@ async function openShopCard(shop) {
   const dist = getDistance(userLat, userLng, currentShop.lat, currentShop.lng);
   const distStr = formatDistance(dist);
 
-  // Fetch photos
-  let photos = [];
-  try {
-    const res2 = await fetch(`/api/shops/${currentShop.id}/photos`);
-    if (res2.ok) photos = await res2.json();
-  } catch {}
+  // Lazy-load photos from cache or fetch
+  let photos = photoCache[shop.id] || null;
+  if (!photos) {
+    try {
+      const res = await fetch(`/api/shops/${shop.id}/photos`);
+      if (res.ok) {
+        photos = await res.json();
+        photoCache[shop.id] = photos;
+      } else {
+        photos = [];
+      }
+    } catch {
+      photos = [];
+    }
+  }
 
   detail.innerHTML = `
     <div class="modal">
