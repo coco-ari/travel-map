@@ -750,6 +750,11 @@ body::before {
   opacity: 0.7;
 }
 
+.scroll-sentinel {
+  height: 1px;
+  width: 100%;
+}
+
 /* ===== Utility ===== */
 .hidden { display: none !important; }
 .text-center { text-align: center; }

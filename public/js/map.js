@@ -200,16 +200,36 @@ function renderCards(reset) {
     container.appendChild(card);
   }
 
-  // Add load-more trigger
+  // Scroll sentinel for infinite scroll
   if (cardHasMore) {
-    const loadMore = document.createElement('div');
-    loadMore.className = 'card-load-more';
-    loadMore.textContent = '加载更多';
-    loadMore.addEventListener('click', loadMoreCards);
-    container.appendChild(loadMore);
+    let sentinel = container.querySelector('.scroll-sentinel');
+    if (!sentinel) {
+      sentinel = document.createElement('div');
+      sentinel.className = 'scroll-sentinel';
+      container.appendChild(sentinel);
+    }
+    setupScrollSentinel(sentinel);
+  } else {
+    const sentinel = container.querySelector('.scroll-sentinel');
+    if (sentinel) sentinel.remove();
   }
 
   setupCardParallax();
+}
+
+// ===== Infinite Scroll Sentinel =====
+let scrollObserver = null;
+
+function setupScrollSentinel(el) {
+  if (scrollObserver) scrollObserver.disconnect();
+
+  scrollObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !cardLoading && cardHasMore) {
+      loadMoreCards();
+    }
+  }, { root: document.getElementById('card-view'), rootMargin: '200px' });
+
+  scrollObserver.observe(el);
 }
 
 async function loadMoreCards() {
