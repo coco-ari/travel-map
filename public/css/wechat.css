@@ -292,7 +292,7 @@ body::before {
   -webkit-overflow-scrolling: touch;
   padding: 4px 12px 80px;
   transition: opacity 0.25s ease;
-  background: transparent;
+  background: linear-gradient(160deg, var(--bg) 0%, var(--bg-warm) 50%, #F0E6DC 100%);
 }
 
 /* ===== Map View ===== */
@@ -453,7 +453,7 @@ body::before {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 8px 16px 4px;
+  padding: 8px 4px 4px;
   background: linear-gradient(160deg, var(--bg) 0%, var(--bg-warm) 50%, #F0E6DC 100%);
 }
 
