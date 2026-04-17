@@ -456,11 +456,26 @@ if (searchInput) {
   });
 }
 
-// ===== Toggle Show All =====
-window.toggleShowAll = async function() {
-  showAll = !showAll;
-  await loadShops();
+// ===== More Menu =====
+window.openMoreMenu = function() {
+  document.getElementById('more-menu').classList.remove('hidden');
 };
+
+window.closeMoreMenu = function() {
+  document.getElementById('more-menu').classList.add('hidden');
+};
+
+window.toggleVisitedFilter = function() {
+  showAll = !showAll;
+  closeMoreMenu();
+  loadShops();
+  updateMoreMenuLabel();
+};
+
+function updateMoreMenuLabel() {
+  const el = document.getElementById('more-visited-label');
+  if (el) el.textContent = showAll ? '隐藏已吃' : '显示已吃';
+}
 
 // ===== Public API =====
 window.markVisited = async function(id) {
@@ -679,6 +694,7 @@ initMap = function() {
 initMap();
 setTimeout(() => { map.invalidateSize(); renderMarkers(); }, 200);
 initLocation();
+updateMoreMenuLabel();
 
 // Sync with admin page (delete, add, etc.)
 const syncChannel = new BroadcastChannel('travel-map-sync');

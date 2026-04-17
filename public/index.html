@@ -12,10 +12,21 @@
     <header class="navbar">
       <span class="navbar-title">吃货地图</span>
       <div class="navbar-right">
-        <a href="/admin" class="navbar-btn">管理</a>
-        <a href="/visited" class="navbar-btn">已吃</a>
+        <button class="navbar-btn-more" id="more-btn" onclick="openMoreMenu()">···</button>
       </div>
     </header>
+
+    <!-- More Menu ActionSheet -->
+    <div id="more-menu" class="actionsheet-overlay hidden" onclick="closeMoreMenu()">
+      <div onclick="event.stopPropagation()">
+        <div class="actionsheet actionsheet-more">
+          <button class="actionsheet-item" onclick="toggleVisitedFilter()">
+            <span id="more-visited-label">显示已吃</span>
+          </button>
+          <a href="/admin" class="actionsheet-item">管理</a>
+        </div>
+      </div>
+    </div>
 
     <!-- Search bar -->
     <div class="search-bar">
@@ -32,17 +43,11 @@
     <div id="map-container"></div>
 
     <!-- Map Controls - unified floating panel -->
-    <div class="map-controls" id="map-controls">
+    <div class="map-controls visible" id="map-controls">
       <div class="view-toggle-inline">
         <button class="view-btn-inline view-btn-active" id="view-map-btn">地图</button>
         <button class="view-btn-inline" id="view-card-btn">卡片</button>
       </div>
-      <div class="map-controls-divider"></div>
-      <label class="toggle-inline">
-        <input type="checkbox" id="show-all-toggle" onchange="toggleShowAll()">
-        <span class="toggle-slider-inline"></span>
-        <span class="toggle-label-inline">显示已吃</span>
-      </label>
       <div id="longpress-hint" class="longpress-hint-inline">长按地图上的空白处可添加店铺</div>
     </div>
   </div>
