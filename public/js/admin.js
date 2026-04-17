@@ -40,7 +40,7 @@ function renderShops() {
       <div class="list-item-title">
         ${escapeHtml(shop.name)}
         <span style="float:right;font-size:12px;color:${shop.status === 'visited' ? '#B0B0B0' : '#07C160'};">
-          ${shop.status === 'visited' ? '已去' : '未去'}
+          ${shop.status === 'visited' ? '已探店' : '未探店'}
           ${distStr ? ' · ' + distStr : ''}
         </span>
       </div>

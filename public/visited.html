@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>已吃列表</title>
+  <title>已探店列表</title>
   <link rel="stylesheet" href="css/wechat.css">
   <style>
     .visited-item {
@@ -63,7 +63,7 @@
     <div class="navbar-left">
       <a href="/" class="navbar-btn">返回地图</a>
     </div>
-    <span class="navbar-title">已吃列表</span>
+    <span class="navbar-title">已探店列表</span>
   </header>
 
   <main class="list" id="visited-list"></main>
@@ -85,7 +85,7 @@
               <circle cx="15" cy="10" r="1" fill="currentColor"/>
             </svg>
             <div>还没有去过的店铺</div>
-            <div style="font-size:13px;margin-top:4px;">在地图上标记店铺并点击"已吃"</div>
+            <div style="font-size:13px;margin-top:4px;">在地图上标记店铺并点击"已探店"</div>
           </div>
         `;
         return;
@@ -109,7 +109,7 @@
           </div>
           <div style="margin-top:8px;display:flex;gap:8px;">
             <button class="btn btn-secondary btn-sm btn-edit-notes" data-id="${shop.id}">编辑备注</button>
-            <button class="btn btn-secondary btn-sm btn-unvisit" data-id="${shop.id}">设为未去</button>
+            <button class="btn btn-secondary btn-sm btn-unvisit" data-id="${shop.id}">未探店</button>
             <button class="btn btn-secondary btn-sm btn-delete" data-id="${shop.id}">删除</button>
           </div>
         `;

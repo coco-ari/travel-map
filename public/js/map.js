@@ -316,7 +316,7 @@ async function openShopCard(shop) {
   }
 
   // Helper to update footer button text after toggle
-  const statusBtnText = (s) => s === 'visited' ? '设为未去' : '已吃';
+  const statusBtnText = (s) => s === 'visited' ? '未探店' : '已探店';
 
   detail.innerHTML = `
     <div class="modal">
@@ -330,7 +330,7 @@ async function openShopCard(shop) {
           <div class="detail-info-row">
             <span class="detail-info-label">状态</span>
             <button class="detail-status-btn" data-action="toggleStatus" data-id="${currentShop.id}">
-              <span class="detail-status-text">${currentShop.status === 'visited' ? '已去' : '未去'}</span>
+              <span class="detail-status-text">${currentShop.status === 'visited' ? '已探店' : '未探店'}</span>
               <span class="detail-status-arrow">›</span>
             </button>
           </div>
@@ -433,9 +433,9 @@ async function toggleStatus(detail, shopId) {
     if (idx !== -1) allShops[idx] = updated;
     // Update UI without closing
     const statusText = detail.querySelector('.detail-status');
-    if (statusText) statusText.textContent = newStatus === 'visited' ? '已去' : '未去';
+    if (statusText) statusText.textContent = newStatus === 'visited' ? '已探店' : '未探店';
     const btn = detail.querySelector('[data-action="toggleStatus"]');
-    if (btn) btn.textContent = newStatus === 'visited' ? '设为未去' : '已吃';
+    if (btn) btn.textContent = newStatus === 'visited' ? '未探店' : '已探店';
     // Refresh markers and cards
     await loadShops();
   }
@@ -473,7 +473,7 @@ function addShopMarker(shop) {
   });
 
   const marker = L.marker([shop.lat, shop.lng], { icon }).addTo(map);
-  marker._shopStatus = isVisited ? '已去' : '未去';
+  marker._shopStatus = isVisited ? '已探店' : '未探店';
   marker._shopData = shop;
   marker.bindPopup(createShopPopup(shop));
   shopMarkers[shop.id] = marker;
@@ -487,7 +487,7 @@ function createShopPopup(shop) {
     <div class="shop-popup-name">${escapeHtml(shop.name)}</div>
     ${formatDistance(dist) ? `<div class="shop-popup-dist">${formatDistance(dist)}</div>` : ''}
     <div class="shop-popup-actions">
-      <button class="btn btn-primary btn-sm" data-action="toggleVisited" data-id="${shop.id}">${shop.status === 'visited' ? '未去' : '已吃'}</button>
+      <button class="btn btn-primary btn-sm" data-action="toggleVisited" data-id="${shop.id}">${shop.status === 'visited' ? '未探店' : '已探店'}</button>
       <button class="btn btn-secondary btn-sm" data-action="showDetail" data-id="${shop.id}">详情</button>
       <button class="btn btn-secondary btn-sm" data-action="moveShop" data-id="${shop.id}">移动</button>
       <button class="btn btn-secondary btn-sm" data-action="navigateTo" data-lat="${shop.lat}" data-lng="${shop.lng}">导航</button>
@@ -680,7 +680,7 @@ function showSearchResults(shops) {
     searchResults.innerHTML = shops.map(shop => {
       const dist = getDistance(userLat, userLng, shop.lat, shop.lng);
       const distStr = formatDistance(dist);
-      const statusText = shop.status === 'visited' ? '已吃' : '未去';
+      const statusText = shop.status === 'visited' ? '已探店' : '未探店';
       return `
         <div class="search-result-item" data-id="${shop.id}">
           <div class="search-result-name">${escapeHtml(shop.name)}</div>
