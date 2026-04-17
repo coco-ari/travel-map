@@ -491,7 +491,7 @@ body::after {
 .distance-bar-inner {
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   padding: 0 8px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -501,12 +501,22 @@ body::after {
 
 .distance-bar-inner::-webkit-scrollbar { display: none; }
 
+@media (max-width: 360px) {
+  .dist-pill {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  .distance-bar-inner {
+    gap: 4px;
+  }
+}
+
 .dist-pill {
   flex-shrink: 0;
-  padding: 6px 16px;
+  padding: 5px 10px;
   font-family: var(--font-comic);
-  font-size: 15px;
-  letter-spacing: 1px;
+  font-size: 13px;
+  letter-spacing: 0.5px;
   border-radius: var(--radius);
   background: var(--paper);
   color: var(--ink);
@@ -515,6 +525,7 @@ body::after {
   box-shadow: var(--shadow-pop-sm);
   text-transform: uppercase;
   transition: all 0.1s;
+  white-space: nowrap;
 }
 
 .dist-pill:active {
