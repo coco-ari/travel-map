@@ -787,31 +787,30 @@ body::after {
 
 .shop-marker-wrapper { text-align: center; }
 .shop-marker-dot {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: 3px solid #000;
-  box-shadow: 3px 3px 0 #000;
+  box-shadow: 2px 2px 0 #000;
   margin: 0 auto;
-  transition: transform 0.15s;
 }
 
 .shop-marker-wrapper:active .shop-marker-dot {
-  transform: scale(1.2) rotate(-8deg);
+  transform: scale(1.15);
 }
 
 .shop-marker-label {
   font-family: var(--font-comic);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink);
-  text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff;
-  max-width: 80px;
+  text-shadow: 0 0 3px #fff, 0 0 6px #fff;
+  max-width: 90px;
   white-space: normal;
   word-break: break-all;
   line-height: 1.1;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
-  margin-top: 2px;
+  margin-top: 3px;
   margin-left: auto;
   margin-right: auto;
 }
