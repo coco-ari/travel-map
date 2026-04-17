@@ -11,6 +11,7 @@
   --gray: #B0B0B0;
   --danger: #FA5151;
   --tap-color: #F0F0F0;
+  --navbar-height: 48px;
 }
 
 /* ===== Reset ===== */
@@ -68,7 +69,7 @@ body {
 /* ===== MapContainer ===== */
 #map-container {
   position: fixed;
-  top: 48px;
+  top: var(--navbar-height);
   left: 0;
   right: 0;
   bottom: 0;
@@ -191,7 +192,7 @@ body {
 .input {
   width: 100%;
   padding: 10px 12px;
-  border: none;
+  border: 1px solid var(--divider);
   border-bottom: 1px solid var(--divider);
   border-radius: 6px;
   font-size: 16px;
@@ -200,7 +201,7 @@ body {
 }
 
 .input:focus {
-  border-bottom-color: var(--wechat-green);
+  border-color: var(--wechat-green);
 }
 
 /* ===== List ===== */
