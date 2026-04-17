@@ -917,7 +917,7 @@ function initLongPress() {
   el.addEventListener('selectstart', e => e.preventDefault());
 
   el.addEventListener('touchstart', (e) => {
-    if (pendingMarker || addingShop) return;
+    if (pendingMarker || addingShop || movingShopId) return;
     // Ignore touches on markers, popups, or controls
     if (e.target.closest('.leaflet-marker-icon, .leaflet-popup, .leaflet-control, .shop-marker-wrapper')) return;
     // Only trigger on empty map areas, not on UI controls
@@ -952,9 +952,9 @@ function initLongPress() {
     touchStartPos = null;
   }, { passive: true });
 
-  map.on('contextmenu', (e) => { e.originalEvent.preventDefault(); if (!pendingMarker && !addingShop) startAddShop(e.latlng.lat, e.latlng.lng); });
+  map.on('contextmenu', (e) => { e.originalEvent.preventDefault(); if (!pendingMarker && !addingShop && !movingShopId) startAddShop(e.latlng.lat, e.latlng.lng); });
   map.on('mousedown', (e) => {
-    if (pendingMarker || addingShop) return;
+    if (pendingMarker || addingShop || movingShopId) return;
     longPressTimer = setTimeout(() => { addingShop = true; startAddShop(e.latlng.lat, e.latlng.lng); }, LONG_PRESS_DURATION);
   });
   map.on('mouseup mousemove', () => { if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; } });
