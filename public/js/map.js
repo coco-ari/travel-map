@@ -176,6 +176,7 @@ function renderCards(reset) {
 
     const card = document.createElement('div');
     card.className = `shop-card${hasCover ? ' has-cover' : ''}`;
+    card.dataset.id = shop.id;
     card.style.animationDelay = '0s';
     card.innerHTML = `
       <div class="card-image">
@@ -676,14 +677,43 @@ window.uploadPhoto = async function(shopId, input) {
   try {
     const res = await fetch(`/api/shops/${shopId}/photo`, { method: 'POST', body: formData });
     if (res.ok) {
+      const photo = await res.json();
+      // Update local shop data with cover photo
+      const idx = allShops.findIndex(s => s.id === shopId);
+      if (idx !== -1) {
+        allShops[idx].cover_photo = photo.url;
+      }
+      // Invalidate photo cache for this shop
+      delete photoCache[shopId];
+
+      // Update card cover in card view
+      updateCardCover(shopId, photo.url);
+
       document.getElementById('shop-detail-modal')?.remove();
-      openShopCard(allShops.find(s => s.id === shopId) || { id: shopId });
+      openShopCard(allShops[idx] || { id: shopId });
     } else {
       const err = await res.json();
       alert(err.error || '上传失败');
     }
   } catch { alert('上传失败，请重试'); }
 };
+
+// Update card cover photo in card view after upload
+function updateCardCover(shopId, url) {
+  const card = document.querySelector(`.shop-card[data-id="${shopId}"]`);
+  if (!card) return;
+  const cardImage = card.querySelector('.card-image');
+  let img = card.querySelector('.card-cover-img');
+  if (!img) {
+    card.classList.add('has-cover');
+    img = document.createElement('img');
+    img.className = 'card-cover-img';
+    img.alt = '';
+    img.loading = 'lazy';
+    cardImage.insertBefore(img, cardImage.querySelector('.card-image-emoji'));
+  }
+  img.src = url;
+}
 
 window.deletePhoto = async function(photoId, btn) {
   if (!confirm('确定删除此照片吗？')) return;
