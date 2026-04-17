@@ -508,6 +508,10 @@ function startMoveShop(id) {
   movingMarker = L.marker([shop.lat, shop.lng], { icon, draggable: true, zIndexOffset: 2000 }).addTo(map);
   map.setView([shop.lat, shop.lng], 16);
 
+  // Disable map panning while dragging the marker
+  movingMarker.on('drag', () => { map.dragging.disable(); });
+  movingMarker.on('dragend', () => { map.dragging.enable(); });
+
   // Show hint overlay
   if (moveHint) moveHint.remove();
   const hintDiv = document.createElement('div');
@@ -524,31 +528,22 @@ function startMoveShop(id) {
   hintDiv.addEventListener('click', (e) => { if (e.target === hintDiv) cancelMoveShop(); });
   document.body.appendChild(hintDiv);
   moveHint = hintDiv;
-
-  // Disable map dragging so user only moves the marker
-  map.dragging.disable();
 }
 
 window.confirmMoveShop = function() {
   if (!movingShopId || !movingMarker) return;
   const newPos = movingMarker.getLatLng();
+  const idx = allShops.findIndex(s => s.id === movingShopId);
+  if (idx !== -1) {
+    allShops[idx] = { ...allShops[idx], lat: newPos.lat, lng: newPos.lng };
+  }
 
-  // Update shop in DB
+  // Update DB
   fetch(`/api/shops/${movingShopId}/location`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ lat: newPos.lat, lng: newPos.lng }),
-  }).then(res => {
-    if (res.ok) return res.json();
-  }).then(updated => {
-    if (updated) {
-      const idx = allShops.findIndex(s => s.id === movingShopId);
-      if (idx !== -1) {
-        allShops[idx] = { ...allShops[idx], lat: updated.lat, lng: updated.lng };
-      }
-    }
-    finishMoveShop();
-  }).catch(() => finishMoveShop());
+  }).finally(() => finishMoveShop());
 };
 
 window.cancelMoveShop = function() {
