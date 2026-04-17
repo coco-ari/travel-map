@@ -171,13 +171,15 @@ function renderCards(reset) {
     const emoji = getFoodEmoji(shop.name);
     const tag = shop.tags ? shop.tags.split(',')[0] : '';
     const rating = shop.rating || 0;
+    const hasCover = shop.cover_photo;
 
     const card = document.createElement('div');
-    card.className = 'shop-card';
+    card.className = `shop-card${hasCover ? ' has-cover' : ''}`;
     card.style.animationDelay = '0s';
     card.innerHTML = `
       <div class="card-image">
         <div class="card-image-bg"></div>
+        ${hasCover ? `<img class="card-cover-img" src="${shop.cover_photo}" alt="" loading="lazy">` : ''}
         <span class="card-image-emoji">${emoji}</span>
         <span class="card-status-dot ${shop.status === 'visited' ? 'visited' : 'unvisited'}"></span>
         ${rating > 0 ? `<span class="card-rating">★ ${rating}</span>` : ''}

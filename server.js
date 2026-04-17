@@ -89,13 +89,20 @@ function autoTag(name) {
 // API routes
 app.get('/api/shops', (req, res) => {
   const { status, search: q, visited } = req.query;
+  let shops;
   if (q) {
-    return res.json(db.search(q, status));
+    shops = db.search(q, status);
+  } else if (visited === 'true') {
+    shops = db.getVisited();
+  } else {
+    shops = db.getAll(status);
   }
-  if (visited === 'true') {
-    return res.json(db.getVisited());
+  // Attach cover photo to each shop
+  for (const shop of shops) {
+    const photos = db.getPhotosByShopId(shop.id);
+    shop.cover_photo = photos.length > 0 ? photos[0].url : null;
   }
-  res.json(db.getAll(status));
+  res.json(shops);
 });
 
 app.get('/api/shops/:id', (req, res) => {
