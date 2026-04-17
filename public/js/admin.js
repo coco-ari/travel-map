@@ -25,9 +25,13 @@ async function loadShops() {
         ${shop.lat.toFixed(4)}, ${shop.lng.toFixed(4)} · ${formatDate(shop.created_at)}
       </div>
       <div style="margin-top:8px;">
-        <button class="btn btn-secondary" style="font-size:13px;padding:4px 12px;" onclick="openDeleteSheet(${shop.id}, '${escapeHtml(shop.name)}')">删除</button>
+        <button class="btn btn-secondary btn-delete" style="font-size:13px;padding:4px 12px;" data-id="${shop.id}" data-name="${escapeHtml(shop.name)}">删除</button>
       </div>
     `;
+    // Use addEventListener to prevent XSS via onclick
+    item.querySelector('.btn-delete').addEventListener('click', () => {
+      openDeleteSheet(Number(shop.id), shop.name);
+    });
     container.appendChild(item);
   });
 }

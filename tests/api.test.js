@@ -1,9 +1,14 @@
 const assert = require('assert');
 const http = require('http');
 const { describe, it, before, after } = require('node:test');
+const fs = require('fs');
+const path = require('path');
 
 // Set isolated test DB BEFORE loading any server modules
-process.env.DB_PATH = './test.db';
+process.env.DB_PATH = path.join(__dirname, 'test.db');
+
+// Clean up stale test DB before loading
+try { fs.unlinkSync(process.env.DB_PATH); } catch {}
 
 const app = require('../server');
 const PORT = 3999;
