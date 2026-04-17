@@ -67,8 +67,9 @@ function addShopMarker(shop) {
   if (shopMarkers[shop.id]) return;
 
   const isVisited = shop.status === 'visited';
-  const markerColor = isVisited ? '#B0B0B0' : (getDistance(userLat, userLng, shop.lat, shop.lng) <= 2000 ? '#FF9F00' : '#07C160');
-  const markerSize = isVisited ? 8 : (getDistance(userLat, userLng, shop.lat, shop.lng) <= 2000 ? 14 : 10);
+  const dist = getDistance(userLat, userLng, shop.lat, shop.lng);
+  const markerColor = isVisited ? '#B0B0B0' : (dist <= 2000 ? '#FF9F00' : '#07C160');
+  const markerSize = isVisited ? 8 : (dist <= 2000 ? 14 : 10);
 
   const icon = L.divIcon({
     className: 'shop-pin',
@@ -91,14 +92,25 @@ function addShopMarker(shop) {
 function createShopPopup(shop) {
   const popup = document.createElement('div');
   popup.className = 'shop-popup';
+  // Use JSON.stringify for numeric values to prevent XSS in inline onclick
   popup.innerHTML = `
     <div class="shop-popup-name">${escapeHtml(shop.name)}</div>
     <div class="shop-popup-actions">
-      <button class="btn btn-primary btn-sm" onclick="markVisited(${shop.id})">已吃</button>
-      <button class="btn btn-secondary btn-sm" onclick="showDetail(${shop.id})">详情</button>
-      <button class="btn btn-secondary btn-sm" onclick="navigateTo(${shop.lat}, ${shop.lng})">导航</button>
+      <button class="btn btn-primary btn-sm" data-action="markVisited" data-id="${shop.id}">已吃</button>
+      <button class="btn btn-secondary btn-sm" data-action="showDetail" data-id="${shop.id}">详情</button>
+      <button class="btn btn-secondary btn-sm" data-action="navigateTo" data-lat="${shop.lat}" data-lng="${shop.lng}">导航</button>
     </div>
   `;
+
+  popup.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    if (action === 'markVisited') markVisited(Number(btn.dataset.id));
+    else if (action === 'showDetail') showDetail(Number(btn.dataset.id));
+    else if (action === 'navigateTo') navigateTo(Number(btn.dataset.lat), Number(btn.dataset.lng));
+  });
+
   return popup;
 }
 
@@ -136,36 +148,36 @@ window.markVisited = async function(id) {
 
 window.showDetail = function(id) {
   const marker = shopMarkers[id];
-  if (marker) {
-    const { lat, lng } = marker.getLatLng();
-    const popupEl = marker.getPopup().getElement();
-    const nameEl = popupEl.querySelector('.shop-popup-name');
-    const name = nameEl ? nameEl.textContent : '未知';
+  if (!marker) return;
+  const { lat, lng } = marker.getLatLng();
+  // Get name from popup element's raw text (textContent already unescapes HTML entities)
+  const popupEl = marker.getPopup().getElement();
+  const nameEl = popupEl.querySelector('.shop-popup-name');
+  const name = nameEl ? nameEl.textContent : '未知';
 
-    const detail = document.createElement('div');
-    detail.className = 'modal-overlay';
-    detail.innerHTML = `
-      <div class="modal">
-        <div class="modal-header">店铺详情</div>
-        <div class="modal-body">
-          <div style="margin-bottom:8px;"><strong>店名：</strong>${escapeHtml(name)}</div>
-          <div style="margin-bottom:8px;"><strong>坐标：</strong>${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
-          <div><strong>状态：</strong>未去</div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn" onclick="this.closest('.modal-overlay').remove()">关闭</button>
-        </div>
+  const detail = document.createElement('div');
+  detail.className = 'modal-overlay';
+  detail.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">店铺详情</div>
+      <div class="modal-body">
+        <div style="margin-bottom:8px;"><strong>店名：</strong>${escapeHtml(name)}</div>
+        <div style="margin-bottom:8px;"><strong>坐标：</strong>${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
+        <div><strong>状态：</strong>未去</div>
       </div>
-    `;
-    document.body.appendChild(detail);
-  }
+      <div class="modal-footer">
+        <button class="btn" onclick="this.closest('.modal-overlay').remove()">关闭</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(detail);
 };
 
 window.navigateTo = function(lat, lng) {
   if (userLat && userLng) {
-    window.location.href = `amapuri://route/plan/?slat=${userLat}&slon=${userLng}&dlat=${lat}&dlon=${lng}&dev=0`;
+    window.location.href = `amapuri://route/plan/?slat=${encodeURIComponent(userLat)}&slon=${encodeURIComponent(userLng)}&dlat=${encodeURIComponent(lat)}&dlon=${encodeURIComponent(lng)}&dev=0`;
   } else {
-    window.open(`https://uri.amap.com/marker?position=${lng},${lat}`);
+    window.open(`https://uri.amap.com/marker?position=${encodeURIComponent(lng)},${encodeURIComponent(lat)}`);
   }
 };
 
