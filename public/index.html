@@ -16,16 +16,12 @@
       </div>
     </header>
 
-    <!-- More Menu ActionSheet -->
-    <div id="more-menu" class="actionsheet-overlay hidden" onclick="closeMoreMenu()">
-      <div onclick="event.stopPropagation()">
-        <div class="actionsheet actionsheet-more">
-          <button class="actionsheet-item" onclick="toggleVisitedFilter()">
-            <span id="more-visited-label">显示已吃</span>
-          </button>
-          <a href="/admin" class="actionsheet-item">管理</a>
-        </div>
-      </div>
+    <!-- More Menu Dropdown -->
+    <div id="more-menu" class="dropdown-menu hidden">
+      <button class="dropdown-item" onclick="toggleVisitedFilter()">
+        <span id="more-visited-label">显示已吃</span>
+      </button>
+      <a href="/admin" class="dropdown-item">管理</a>
     </div>
 
     <!-- Search bar -->

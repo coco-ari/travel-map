@@ -465,6 +465,13 @@ window.closeMoreMenu = function() {
   document.getElementById('more-menu').classList.add('hidden');
 };
 
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.navbar-right') && !e.target.closest('#more-menu')) {
+    closeMoreMenu();
+  }
+});
+
 window.toggleVisitedFilter = function() {
   showAll = !showAll;
   closeMoreMenu();

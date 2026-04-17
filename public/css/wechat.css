@@ -140,6 +140,52 @@ body::before {
   background: var(--border);
 }
 
+/* Dropdown Menu */
+.dropdown-menu {
+  position: absolute;
+  top: calc(var(--nav-h) - 4px);
+  right: 12px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255,255,255,0.6);
+  min-width: 120px;
+  z-index: 1001;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.15s ease;
+}
+
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-menu.hidden { display: none; }
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--text);
+  background: none;
+  border: none;
+  text-align: center;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.dropdown-item:active {
+  background: var(--surface-2);
+}
+
+.dropdown-item + .dropdown-item {
+  border-top: 1px solid var(--border);
+}
+
 /* ===== Search ===== */
 .search-bar {
   position: fixed;
