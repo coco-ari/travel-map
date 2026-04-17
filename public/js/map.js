@@ -72,19 +72,22 @@ function addShopMarker(shop) {
   const isVisited = shop.status === 'visited';
   const dist = getDistance(userLat, userLng, shop.lat, shop.lng);
   const markerColor = isVisited ? '#B0B0B0' : (dist <= 2000 ? '#FF9F00' : '#07C160');
-  const markerSize = isVisited ? 8 : (dist <= 2000 ? 14 : 10);
+  const scale = isVisited ? 0.7 : (dist <= 2000 ? 1.2 : 1);
 
   const icon = L.divIcon({
     className: 'shop-pin',
-    html: `<div style="
-      width: ${markerSize}px; height: ${markerSize}px;
-      background: ${markerColor};
-      border: 2px solid #fff;
-      border-radius: 50%;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    "></div>`,
-    iconSize: [markerSize, markerSize],
-    iconAnchor: [markerSize / 2, markerSize / 2],
+    html: `
+      <div class="shop-marker-wrapper" style="transform:scale(${scale})">
+        <svg class="shop-marker-icon" width="24" height="32" viewBox="0 0 24 32">
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20C24 5.373 18.627 0 12 0z"
+                fill="${markerColor}" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="12" cy="11" r="5" fill="#fff" fill-opacity="0.9"/>
+        </svg>
+        <div class="shop-marker-label">${escapeHtml(shop.name)}</div>
+      </div>
+    `,
+    iconSize: [24 * scale, 32 * scale + 14],
+    iconAnchor: [12 * scale, 32 * scale],
   });
 
   const marker = L.marker([shop.lat, shop.lng], { icon }).addTo(map);

@@ -335,6 +335,34 @@ body {
   border: none !important;
 }
 
+/* ===== Shop Marker ===== */
+.shop-pin {
+  background: transparent !important;
+  border: none !important;
+}
+
+.shop-marker-wrapper {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.shop-marker-icon {
+  display: block;
+  margin: 0 auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.shop-marker-label {
+  font-size: 12px;
+  color: #333;
+  font-weight: 500;
+  text-shadow: 0 0 3px #fff, 0 0 3px #fff;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
 /* ===== Map Toggle Label ===== */
 #show-all-label {
   user-select: none;
