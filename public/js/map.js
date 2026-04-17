@@ -31,9 +31,12 @@ function initLocation() {
     },
     (err) => {
       console.error('定位失败:', err);
-      alert('无法获取您的位置，请允许定位权限');
+      const msg = err.code === 1 ? '未允许定位权限，请在浏览器设置中开启'
+        : err.code === 2 ? '无法获取位置信息'
+        : '定位超时，请检查网络连接后重试';
+      alert(msg);
     },
-    { enableHighAccuracy: true }
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
   );
 }
 
