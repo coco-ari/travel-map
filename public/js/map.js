@@ -22,6 +22,7 @@ let allShops = [];
 let photoCache = {}; // Cache photos by shop id to avoid re-fetching
 let currentView = 'map'; // 'card' or 'map' — default to map
 let distanceFilter = 5; // Default 5km for card view, options: 1, 3, 5, 10
+let cardSearchKeyword = '';
 
 // ===== Card Pagination =====
 const CARD_PAGE_SIZE = 20;
@@ -134,6 +135,9 @@ function renderCards(reset) {
 
   // Filter and sort by distance
   let shops = [...allShops];
+  if (cardSearchKeyword) {
+    shops = shops.filter(s => s.name.includes(cardSearchKeyword));
+  }
   if (userLat && userLng && distanceFilter > 0) {
     shops = shops.filter(s => getDistance(userLat, userLng, s.lat, s.lng) <= distanceFilter * 1000);
     shops.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
@@ -664,24 +668,21 @@ if (searchInput) {
 }
 
 function performSearch(keyword) {
-  // In card view: filter cards in place
+  // In card view: filter cards in place, no dropdown
   if (currentView === 'card') {
-    cardFilteredShops = keyword
-      ? allShops.filter(s => s.name.includes(keyword))
-      : [...allShops];
+    cardSearchKeyword = keyword || '';
     renderCards(true);
     return;
   }
 
+  // In map view: show dropdown results
   if (!keyword) {
     searchResults.classList.add('hidden');
     searchResults.innerHTML = '';
-    // Reset to show all shops
     loadShops();
     return;
   }
 
-  // In map view: show dropdown results
   const url = `/api/shops?search=${encodeURIComponent(keyword)}&status=all`;
   fetch(url)
     .then(res => res.json())
