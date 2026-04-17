@@ -450,11 +450,13 @@ body::before {
 
 /* ===== Card List ===== */
 .distance-bar {
+  padding: 6px 0;
+}
+
+#card-view .distance-bar {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 6px 0;
-  background: linear-gradient(160deg, var(--bg) 0%, var(--bg-warm) 50%, #F0E6DC 100%);
 }
 
 .distance-bar-inner {
