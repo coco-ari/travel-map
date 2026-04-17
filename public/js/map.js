@@ -425,7 +425,7 @@ function addShopMarker(shop) {
 
   const isVisited = shop.status === 'visited';
   const dist = getDistance(userLat, userLng, shop.lat, shop.lng);
-  const markerColor = isVisited ? '#B0B0B0' : (dist <= 2000 ? '#FF9F00' : '#07C160');
+  const markerColor = isVisited ? '#8B6FC0' : (dist <= 2000 ? '#FF9F00' : '#07C160');
   const scale = isVisited ? 0.7 : (dist <= 2000 ? 1.2 : 1);
 
   const icon = L.divIcon({
