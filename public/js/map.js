@@ -327,7 +327,7 @@ async function openShopCard(shop) {
           <div class="detail-info-row">
             <span class="detail-info-label">状态</span>
             <button class="detail-status-btn" data-action="toggleStatus" data-id="${currentShop.id}">
-              <span class="detail-status-text">${currentShop.status === 'visited' ? '已探店' : '未探店'}</span>
+              <span class="detail-status-text">${currentShop.status === 'visited' ? '已探' : '未探'}</span>
               <span class="detail-status-arrow">›</span>
             </button>
           </div>
@@ -470,7 +470,7 @@ function addShopMarker(shop) {
   });
 
   const marker = L.marker([shop.lat, shop.lng], { icon }).addTo(map);
-  marker._shopStatus = isVisited ? '已探店' : '未探店';
+  marker._shopStatus = isVisited ? '已探' : '未探';
   marker._shopData = shop;
   marker.bindPopup(createShopPopup(shop));
   shopMarkers[shop.id] = marker;
@@ -682,7 +682,7 @@ function showSearchResults(shops) {
     searchResults.innerHTML = shops.map(shop => {
       const dist = getDistance(userLat, userLng, shop.lat, shop.lng);
       const distStr = formatDistance(dist);
-      const statusText = shop.status === 'visited' ? '已探店' : '未探店';
+      const statusText = shop.status === 'visited' ? '已探' : '未探';
       return `
         <div class="search-result-item" data-id="${shop.id}">
           <div class="search-result-name">${escapeHtml(shop.name)}</div>
@@ -790,14 +790,13 @@ window.toggleVisited = async function(id) {
     // Update local data
     const idx = allShops.findIndex(s => s.id === id);
     if (idx !== -1) allShops[idx] = { ...allShops[idx], status: newStatus };
-    // Update popup text and button if open
-    const popup = document.querySelector('.leaflet-popup .shop-popup-name');
+    // Update popup button text
+    const popupBtn = document.querySelector('.leaflet-popup .shop-popup-actions [data-action="toggleVisited"]');
+    if (popupBtn) popupBtn.textContent = newStatus === 'visited' ? '未探' : '已探';
+    // Update marker status
     const marker = shopMarkers[id];
-    if (marker) {
-      marker._shopStatus = newStatus === 'visited' ? '已探' : '未探';
-      marker._shopData.status = newStatus;
-    }
-    // Update cards
+    if (marker) marker._shopStatus = newStatus === 'visited' ? '已探' : '未探';
+    // Update cards if in card view
     if (currentView === 'card') renderCards(true);
   }
 };
