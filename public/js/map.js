@@ -508,16 +508,22 @@ function startMoveShop(id) {
   movingMarker = L.marker([shop.lat, shop.lng], { icon, draggable: true, zIndexOffset: 2000 }).addTo(map);
   map.setView([shop.lat, shop.lng], 16);
 
-  // Show hint
+  // Show hint overlay
   if (moveHint) moveHint.remove();
-  moveHint = L.control({ position: 'bottomcenter' }).addTo(map);
-  moveHint.onAdd = function() {
-    const div = L.DomUtil.create('div', 'move-hint');
-    div.innerHTML = `<span class="move-hint-text">拖动橙色圆点到新位置，点击确定</span>
-      <button class="move-confirm-btn" onclick="confirmMoveShop()">确定</button>
-      <button class="move-cancel-btn" onclick="cancelMoveShop()">取消</button>`;
-    return div;
-  };
+  const hintDiv = document.createElement('div');
+  hintDiv.className = 'move-hint-overlay';
+  hintDiv.innerHTML = `
+    <div class="move-hint-box">
+      <div class="move-hint-text">拖动橙色圆点到新位置</div>
+      <div>
+        <button class="move-confirm-btn" onclick="confirmMoveShop()">确定</button>
+        <button class="move-cancel-btn" onclick="cancelMoveShop()">取消</button>
+      </div>
+    </div>
+  `;
+  hintDiv.addEventListener('click', (e) => { if (e.target === hintDiv) cancelMoveShop(); });
+  document.body.appendChild(hintDiv);
+  moveHint = hintDiv;
 
   // Disable map dragging so user only moves the marker
   map.dragging.disable();
@@ -555,7 +561,7 @@ function finishMoveShop() {
     movingMarker = null;
   }
   if (moveHint) {
-    map.removeControl(moveHint);
+    moveHint.remove();
     moveHint = null;
   }
   map.dragging.enable();

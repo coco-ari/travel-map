@@ -1036,30 +1036,49 @@ body::before {
 .shop-popup-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
 
 /* Move Shop Hint */
-.move-hint {
+.move-hint-overlay {
+  position: fixed;
+  bottom: 0;
+  left: 0; right: 0;
+  z-index: 2000;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 20px;
+  animation: fadeInUp 0.2s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.move-hint-box {
   background: rgba(255,255,255,0.95);
   backdrop-filter: blur(10px);
-  border-radius: 12px;
-  padding: 10px 16px;
-  box-shadow: var(--shadow-lg);
+  border-radius: 16px 16px 0 0;
+  padding: 16px 20px;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
   text-align: center;
-  pointer-events: auto;
+  width: 100%;
+  max-width: 480px;
 }
 
 .move-hint-text {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text);
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .move-confirm-btn, .move-cancel-btn {
-  padding: 5px 14px;
-  font-size: 12px;
+  padding: 8px 20px;
+  font-size: 13px;
   font-weight: 600;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   margin: 0 4px;
 }
