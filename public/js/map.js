@@ -459,7 +459,7 @@ function createShopPopup(shop) {
     <div class="shop-popup-name">${escapeHtml(shop.name)}</div>
     ${formatDistance(dist) ? `<div class="shop-popup-dist">${formatDistance(dist)}</div>` : ''}
     <div class="shop-popup-actions">
-      <button class="btn btn-primary btn-sm" data-action="markVisited" data-id="${shop.id}">已吃</button>
+      <button class="btn btn-primary btn-sm" data-action="toggleVisited" data-id="${shop.id}">${shop.status === 'visited' ? '未去' : '已吃'}</button>
       <button class="btn btn-secondary btn-sm" data-action="showDetail" data-id="${shop.id}">详情</button>
       <button class="btn btn-secondary btn-sm" data-action="moveShop" data-id="${shop.id}">移动</button>
       <button class="btn btn-secondary btn-sm" data-action="navigateTo" data-lat="${shop.lat}" data-lng="${shop.lng}">导航</button>
@@ -470,7 +470,7 @@ function createShopPopup(shop) {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     const action = btn.dataset.action;
-    if (action === 'markVisited') markVisited(Number(btn.dataset.id));
+    if (action === 'toggleVisited') toggleVisited(Number(btn.dataset.id));
     else if (action === 'showDetail') showDetail(Number(btn.dataset.id));
     else if (action === 'navigateTo') navigateTo(Number(btn.dataset.lat), Number(btn.dataset.lng));
     else if (action === 'moveShop') startMoveShop(Number(btn.dataset.id));
@@ -745,6 +745,20 @@ window.unvisitShop = async function(id) {
   });
   await loadShops();
   document.getElementById('shop-detail-modal')?.remove();
+};
+
+window.toggleVisited = async function(id) {
+  const shop = allShops.find(s => s.id === id);
+  if (!shop) return;
+  const newStatus = shop.status === 'visited' ? 'unvisited' : 'visited';
+  const res = await fetch(`/api/shops/${id}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: newStatus }),
+  });
+  if (res.ok) {
+    await loadShops();
+  }
 };
 
 window.showDetail = async function(id) {
