@@ -8,9 +8,13 @@
 </head>
 <body>
   <header class="navbar">
-    <a href="/" class="navbar-btn" style="left:12px;right:auto;">返回地图</a>
+    <div class="navbar-left">
+      <a href="/" class="navbar-btn">返回地图</a>
+    </div>
     <span class="navbar-title">店铺管理</span>
-    <span class="navbar-btn" onclick="openManualAdd()">添加</span>
+    <div class="navbar-right">
+      <a href="#" class="navbar-btn" onclick="openManualAdd(); return false;">添加</a>
+    </div>
   </header>
 
   <main class="list" id="shop-list"></main>
