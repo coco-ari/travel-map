@@ -12,9 +12,18 @@ db.exec(`
     lat         REAL NOT NULL,
     lng         REAL NOT NULL,
     status      TEXT DEFAULT 'unvisited',
+    notes       TEXT DEFAULT '',
+    rating      INTEGER DEFAULT 0,
+    tags        TEXT DEFAULT '',
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+// Migration: add new columns to existing databases
+const columns = db.pragma('table_info(shops)').map(c => c.name);
+if (!columns.includes('notes')) db.exec("ALTER TABLE shops ADD COLUMN notes TEXT DEFAULT ''");
+if (!columns.includes('rating')) db.exec("ALTER TABLE shops ADD COLUMN rating INTEGER DEFAULT 0");
+if (!columns.includes('tags')) db.exec("ALTER TABLE shops ADD COLUMN tags TEXT DEFAULT ''");
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS photos (
@@ -50,10 +59,10 @@ function getAll(status) {
   return db.prepare('SELECT * FROM shops ORDER BY created_at DESC').all();
 }
 
-function create({ name, lat, lng }) {
+function create({ name, lat, lng, tags }) {
   const info = db.prepare(
-    'INSERT INTO shops (name, lat, lng) VALUES (?, ?, ?)'
-  ).run(name, lat, lng);
+    'INSERT INTO shops (name, lat, lng, tags) VALUES (?, ?, ?, ?)'
+  ).run(name, lat, lng, tags || '');
   return db.prepare('SELECT * FROM shops WHERE id = ?').get(info.lastInsertRowid);
 }
 
@@ -70,4 +79,21 @@ function updateStatus(id, status) {
   return db.prepare('SELECT * FROM shops WHERE id = ?').get(id);
 }
 
-module.exports = { getAll, create, getById, remove, updateStatus, addPhoto, getPhotosByShopId, deletePhoto };
+function search(keyword) {
+  return db.prepare(
+    "SELECT * FROM shops WHERE name LIKE ? ORDER BY created_at DESC"
+  ).all(`%${keyword}%`);
+}
+
+function getVisited() {
+  return db.prepare(
+    "SELECT * FROM shops WHERE status = 'visited' ORDER BY created_at DESC"
+  ).all();
+}
+
+function updateNotes(id, notes, rating) {
+  db.prepare('UPDATE shops SET notes = ?, rating = ? WHERE id = ?').run(notes, rating || 0, id);
+  return db.prepare('SELECT * FROM shops WHERE id = ?').get(id);
+}
+
+module.exports = { getAll, create, getById, remove, updateStatus, addPhoto, getPhotosByShopId, deletePhoto, search, getVisited, updateNotes };

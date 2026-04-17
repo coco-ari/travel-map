@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>已吃列表</title>
+  <link rel="stylesheet" href="css/wechat.css">
+  <style>
+    .visited-item {
+      background: var(--card-bg);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .visited-item:active {
+      background: var(--tap-color);
+    }
+    .visited-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .visited-name {
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .visited-stars {
+      color: #FFC107;
+      font-size: 14px;
+    }
+    .visited-notes {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      word-break: break-all;
+    }
+    .visited-tags {
+      margin-top: 4px;
+    }
+    .visited-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      background: var(--bg-color);
+      color: var(--text-secondary);
+      margin-right: 4px;
+    }
+    .empty-state {
+      text-align: center;
+      color: #999;
+      padding: 60px 16px;
+    }
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 12px;
+      opacity: 0.4;
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <a href="/" class="navbar-btn" style="left:12px;right:auto;">返回地图</a>
+    <span class="navbar-title">已吃列表</span>
+  </header>
+
+  <main class="list" id="visited-list"></main>
+
+  <script>
+    async function loadVisited() {
+      const res = await fetch('/api/shops?visited=true');
+      const shops = await res.json();
+      const container = document.getElementById('visited-list');
+      container.innerHTML = '';
+
+      if (shops.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+              <circle cx="9" cy="10" r="1" fill="currentColor"/>
+              <circle cx="15" cy="10" r="1" fill="currentColor"/>
+            </svg>
+            <div>还没有去过的店铺</div>
+            <div style="font-size:13px;margin-top:4px;">在地图上标记店铺并点击"已吃"</div>
+          </div>
+        `;
+        return;
+      }
+
+      shops.forEach((shop) => {
+        const item = document.createElement('div');
+        item.className = 'visited-item';
+        const stars = '★'.repeat(shop.rating || 0) + '☆'.repeat(5 - (shop.rating || 0));
+        const tags = shop.tags ? shop.tags.split(',').filter(Boolean) : [];
+
+        item.innerHTML = `
+          <div class="visited-header">
+            <span class="visited-name">${escapeHtml(shop.name)}</span>
+            <span class="visited-stars">${shop.rating ? stars : ''}</span>
+          </div>
+          ${shop.notes ? `<div class="visited-notes">${escapeHtml(shop.notes)}</div>` : ''}
+          ${tags.length > 0 ? `<div class="visited-tags">${tags.map(t => `<span class="visited-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+          <div class="list-item-meta" style="margin-top:4px;">
+            ${shop.lat.toFixed(4)}, ${shop.lng.toFixed(4)} · ${formatDate(shop.created_at)}
+          </div>
+          <div style="margin-top:8px;display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm btn-edit-notes" data-id="${shop.id}">编辑备注</button>
+            <button class="btn btn-secondary btn-sm btn-unvisit" data-id="${shop.id}">设为未去</button>
+            <button class="btn btn-secondary btn-sm btn-delete" data-id="${shop.id}">删除</button>
+          </div>
+        `;
+
+        // Edit notes
+        item.querySelector('.btn-edit-notes').addEventListener('click', () => editNotes(shop));
+        // Unvisit
+        item.querySelector('.btn-unvisit').addEventListener('click', async () => {
+          await fetch(`/api/shops/${shop.id}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'unvisited' }),
+          });
+          loadVisited();
+        });
+        // Delete
+        item.querySelector('.btn-delete').addEventListener('click', async () => {
+          if (!confirm(`确定删除 "${shop.name}" 吗？`)) return;
+          await fetch(`/api/shops/${shop.id}`, { method: 'DELETE' });
+          loadVisited();
+        });
+
+        container.appendChild(item);
+      });
+    }
+
+    async function editNotes(shop) {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal">
+          <div class="modal-header">编辑备注</div>
+          <div class="modal-body">
+            <div style="margin-bottom:8px;font-weight:500;">${escapeHtml(shop.name)}</div>
+            <div style="margin-bottom:12px;">
+              <strong>评分：</strong>
+              <div class="stars" data-rating="${shop.rating || 0}">
+                ${[1,2,3,4,5].map(i => `<span class="star${i <= (shop.rating || 0) ? ' star-active' : ''}" data-value="${i}">★</span>`).join('')}
+              </div>
+            </div>
+            <textarea id="edit-notes-text" class="notes-input" placeholder="添加备注..." maxlength="200">${escapeHtml(shop.notes || '')}</textarea>
+          </div>
+          <div class="modal-footer">
+            <button class="btn" id="edit-notes-cancel">取消</button>
+            <button class="btn btn-confirm" id="edit-notes-save">保存</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      // Star rating events
+      modal.querySelectorAll('.star').forEach(star => {
+        star.addEventListener('click', () => {
+          const value = Number(star.dataset.value);
+          const starsContainer = star.parentElement;
+          starsContainer.dataset.rating = value;
+          starsContainer.querySelectorAll('.star').forEach((s, i) => {
+            s.classList.toggle('star-active', i < value);
+          });
+        });
+      });
+
+      modal.querySelector('#edit-notes-cancel').addEventListener('click', () => modal.remove());
+      modal.querySelector('#edit-notes-save').addEventListener('click', async () => {
+        const notes = modal.querySelector('#edit-notes-text').value.trim();
+        const rating = Number(modal.querySelector('.stars').dataset.rating);
+        await fetch(`/api/shops/${shop.id}/notes`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notes, rating }),
+        });
+        modal.remove();
+        loadVisited();
+      });
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+      });
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    loadVisited();
+  </script>
+</body>
+</html>

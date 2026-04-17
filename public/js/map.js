@@ -1,7 +1,7 @@
 // ===== Map Initialization =====
 const map = L.map('map-container', {
   zoomControl: false,
-}).setView([39.9042, 116.4074], 15); // 北京默认
+}).setView([22.5428, 113.9442], 12); // 深圳默认
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap',
@@ -13,6 +13,10 @@ let userLat = null;
 let userLng = null;
 let userMarker = null;
 let shopMarkers = {};
+let showAll = false;
+let activeTag = 'all';
+let searchQuery = '';
+let allShops = [];
 
 // ===== Location =====
 function initLocation() {
@@ -35,6 +39,7 @@ function initLocation() {
         : err.code === 2 ? '无法获取位置信息'
         : '定位超时，请检查网络连接后重试';
       alert(msg);
+      loadShops(); // Load anyway without location
     },
     { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
   );
@@ -61,8 +66,38 @@ function addLocationMarker(lat, lng) {
 
 // ===== Shop Loading =====
 async function loadShops() {
-  const res = await fetch('/api/shops?status=unvisited');
-  const shops = await res.json();
+  const url = showAll ? '/api/shops' : '/api/shops?status=unvisited';
+  const res = await fetch(url);
+  allShops = await res.json();
+  renderMarkers();
+}
+
+function renderMarkers() {
+  // Clear existing shop markers
+  Object.values(shopMarkers).forEach((m) => map.removeLayer(m));
+  shopMarkers = {};
+
+  let shops = allShops;
+
+  // Filter by search
+  if (searchQuery) {
+    shops = shops.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  }
+
+  // Filter by tag
+  if (activeTag !== 'all') {
+    shops = shops.filter(s => s.tags && s.tags.split(',').includes(activeTag));
+  }
+
+  // Sort by distance when showAll is on
+  if (showAll && userLat && userLng) {
+    shops = shops.slice().sort((a, b) => {
+      const da = getDistance(userLat, userLng, a.lat, a.lng);
+      const db2 = getDistance(userLat, userLng, b.lat, b.lng);
+      return da - db2;
+    });
+  }
+
   shops.forEach((shop) => addShopMarker(shop));
 }
 
@@ -92,16 +127,26 @@ function addShopMarker(shop) {
 
   const marker = L.marker([shop.lat, shop.lng], { icon }).addTo(map);
   marker._shopStatus = shop.status === 'visited' ? '已去' : '未去';
+  marker._shopData = shop;
   marker.bindPopup(createShopPopup(shop));
   shopMarkers[shop.id] = marker;
+}
+
+function formatDistance(meters) {
+  if (meters == null || !isFinite(meters)) return '';
+  if (meters < 1000) return `${Math.round(meters)}m`;
+  return `${(meters / 1000).toFixed(1)}km`;
 }
 
 function createShopPopup(shop) {
   const popup = document.createElement('div');
   popup.className = 'shop-popup';
-  // Use JSON.stringify for numeric values to prevent XSS in inline onclick
+  const dist = getDistance(userLat, userLng, shop.lat, shop.lng);
+  const distStr = formatDistance(dist);
+
   popup.innerHTML = `
     <div class="shop-popup-name">${escapeHtml(shop.name)}</div>
+    ${distStr ? `<div class="shop-popup-dist">${distStr}</div>` : ''}
     <div class="shop-popup-actions">
       <button class="btn btn-primary btn-sm" data-action="markVisited" data-id="${shop.id}">已吃</button>
       <button class="btn btn-secondary btn-sm" data-action="showDetail" data-id="${shop.id}">详情</button>
@@ -123,6 +168,7 @@ function createShopPopup(shop) {
 
 // ===== Distance (Haversine) =====
 function getDistance(lat1, lng1, lat2, lng2) {
+  if (lat1 == null || lng1 == null) return Infinity;
   const R = 6371000;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLng = ((lng2 - lng1) * Math.PI) / 180;
@@ -139,19 +185,34 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-let showAll = false;
-
+// ===== Toggle Show All =====
 window.toggleShowAll = async function() {
   showAll = !showAll;
-  // Clear existing shop markers
-  Object.values(shopMarkers).forEach((m) => map.removeLayer(m));
-  shopMarkers = {};
-
-  // Reload markers with new filter
-  const res = await fetch(showAll ? '/api/shops' : '/api/shops?status=unvisited');
-  const shops = await res.json();
-  shops.forEach((shop) => addShopMarker(shop));
+  await loadShops();
 };
+
+// ===== Search =====
+const searchInput = document.getElementById('search-input');
+if (searchInput) {
+  let searchTimer;
+  searchInput.addEventListener('input', (e) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      searchQuery = e.target.value.trim();
+      renderMarkers();
+    }, 300);
+  });
+}
+
+// ===== Tag Filter =====
+document.getElementById('tag-bar')?.addEventListener('click', (e) => {
+  const tag = e.target.closest('.tag');
+  if (!tag) return;
+  document.querySelectorAll('.tag').forEach(t => t.classList.remove('tag-active'));
+  tag.classList.add('tag-active');
+  activeTag = tag.dataset.tag;
+  renderMarkers();
+});
 
 // ===== Public API =====
 window.markVisited = async function(id) {
@@ -170,10 +231,10 @@ window.markVisited = async function(id) {
 window.showDetail = async function(id) {
   const marker = shopMarkers[id];
   if (!marker) return;
+  const shop = marker._shopData;
   const { lat, lng } = marker.getLatLng();
-  const popupEl = marker.getPopup().getElement();
-  const nameEl = popupEl.querySelector('.shop-popup-name');
-  const name = nameEl ? nameEl.textContent : '未知';
+  const dist = getDistance(userLat, userLng, lat, lng);
+  const distStr = formatDistance(dist);
 
   // Fetch photos
   let photos = [];
@@ -183,6 +244,7 @@ window.showDetail = async function(id) {
   } catch {}
 
   const statusText = marker._shopStatus || '未去';
+  const rating = shop?.rating || 0;
 
   const detail = document.createElement('div');
   detail.className = 'modal-overlay';
@@ -191,9 +253,19 @@ window.showDetail = async function(id) {
     <div class="modal shop-detail-modal">
       <div class="modal-header">店铺详情</div>
       <div class="modal-body">
-        <div style="margin-bottom:8px;"><strong>店名：</strong>${escapeHtml(name)}</div>
+        <div style="margin-bottom:8px;"><strong>店名：</strong>${escapeHtml(shop?.name || '未知')}</div>
         <div style="margin-bottom:8px;"><strong>坐标：</strong>${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
+        ${distStr ? `<div style="margin-bottom:8px;"><strong>距离：</strong>${distStr}</div>` : ''}
         <div style="margin-bottom:12px;"><strong>状态：</strong>${statusText}</div>
+        <div class="rating-section">
+          <strong>评分：</strong>
+          <div class="stars" data-shop-id="${id}" data-rating="${rating}">
+            ${[1,2,3,4,5].map(i => `<span class="star${i <= rating ? ' star-active' : ''}" data-value="${i}">★</span>`).join('')}
+          </div>
+        </div>
+        <div class="notes-section" style="margin-top:8px;">
+          <textarea id="shop-notes" class="notes-input" placeholder="添加备注..." maxlength="200">${escapeHtml(shop?.notes || '')}</textarea>
+        </div>
         <div class="photo-section">
           <div class="photo-grid" id="photo-grid">
             ${photos.map(p => `
@@ -209,6 +281,7 @@ window.showDetail = async function(id) {
             📷 拍照上传
             <input type="file" accept="image/*" capture="environment" id="photo-input" onchange="uploadPhoto(${id}, this)" hidden>
           </label>
+          <button class="btn btn-secondary btn-sm" id="save-notes-btn" style="margin-left:8px;">保存备注</button>
         </div>
       </div>
       <div class="modal-footer">
@@ -217,6 +290,30 @@ window.showDetail = async function(id) {
     </div>
   `;
   document.body.appendChild(detail);
+
+  // Star rating events
+  detail.querySelectorAll('.star').forEach(star => {
+    star.addEventListener('click', () => {
+      const value = Number(star.dataset.value);
+      const starsContainer = star.parentElement;
+      starsContainer.dataset.rating = value;
+      starsContainer.querySelectorAll('.star').forEach((s, i) => {
+        s.classList.toggle('star-active', i < value);
+      });
+    });
+  });
+
+  // Save notes/rating
+  detail.querySelector('#save-notes-btn').addEventListener('click', async () => {
+    const notes = detail.querySelector('#shop-notes').value.trim();
+    const rating = Number(detail.querySelector('.stars').dataset.rating);
+    await fetch(`/api/shops/${id}/notes`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes, rating }),
+    });
+    alert('已保存');
+  });
 };
 
 window.previewPhoto = function(filename, photoId) {
@@ -243,7 +340,6 @@ window.uploadPhoto = async function(shopId, input) {
       body: formData,
     });
     if (res.ok) {
-      // Reload detail modal
       document.getElementById('shop-detail-modal')?.remove();
       showDetail(shopId);
     } else {
@@ -261,7 +357,6 @@ window.deletePhoto = async function(photoId, btn) {
     const res = await fetch(`/api/photos/${photoId}`, { method: 'DELETE' });
     if (res.ok) {
       document.querySelector('.photo-preview-overlay')?.remove();
-      // Reload current shop detail
       const modal = document.getElementById('shop-detail-modal');
       if (modal) {
         const shopId = document.getElementById('photo-input')?.getAttribute('onchange')?.match(/\d+/)?.[0];
@@ -288,11 +383,9 @@ let pendingLat = null;
 let pendingLng = null;
 
 function startAddShop(lat, lng) {
-  // Hide hint
   const hint = document.getElementById('longpress-hint');
   if (hint) hint.style.opacity = '0';
 
-  // Remove existing pending marker
   if (pendingMarker) {
     map.removeLayer(pendingMarker);
     pendingMarker = null;
@@ -300,7 +393,6 @@ function startAddShop(lat, lng) {
   pendingLat = lat;
   pendingLng = lng;
 
-  // Create draggable temp marker (orange, pulsing)
   const icon = L.divIcon({
     className: 'temp-pin',
     html: `<div style="
@@ -318,14 +410,12 @@ function startAddShop(lat, lng) {
 
   pendingMarker = L.marker([lat, lng], { icon, draggable: true }).addTo(map);
 
-  // Update position when dragged
   pendingMarker.on('dragend', (e) => {
     const pos = e.target.getLatLng();
     pendingLat = pos.lat;
     pendingLng = pos.lng;
   });
 
-  // Show input modal
   showAddModal();
 }
 
@@ -351,22 +441,18 @@ function showAddModal() {
   `;
   document.body.appendChild(modal);
 
-  // Event listeners
   modal.querySelector('#add-cancel-btn').addEventListener('click', cancelAddShop);
   modal.querySelector('#add-confirm-btn').addEventListener('click', confirmAddShop);
 
-  // Auto-focus input
   setTimeout(() => {
     const input = document.getElementById('add-shop-name');
     if (input) input.focus();
   }, 300);
 
-  // Enter key to confirm
   document.getElementById('add-shop-name').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') confirmAddShop();
   });
 
-  // Tap overlay to cancel
   modal.addEventListener('click', (e) => {
     if (e.target === modal) cancelAddShop();
   });
@@ -399,7 +485,6 @@ async function confirmAddShop() {
   if (res.ok) {
     const shop = await res.json();
     addShopMarker(shop);
-    // Close modal
     const modal = document.getElementById('add-shop-modal');
     if (modal) modal.remove();
     if (pendingMarker) {
@@ -416,8 +501,8 @@ async function confirmAddShop() {
 // Long press detection
 let longPressTimer = null;
 let touchStartPos = null;
-const LONG_PRESS_DURATION = 500; // 500ms
-const MOVE_THRESHOLD = 10; // pixels
+const LONG_PRESS_DURATION = 500;
+const MOVE_THRESHOLD = 10;
 
 map.on('touchstart', (e) => {
   if (pendingMarker) return;
@@ -454,7 +539,6 @@ map.on('touchend', () => {
   touchStartPos = null;
 });
 
-// Prevent context menu (long-press popup) on mobile
 map.on('contextmenu', (e) => {
   e.originalEvent.preventDefault();
   if (!pendingMarker) {
@@ -462,7 +546,6 @@ map.on('contextmenu', (e) => {
   }
 });
 
-// Desktop click fallback
 map.on('mousedown', (e) => {
   if (pendingMarker) return;
   longPressTimer = setTimeout(() => {

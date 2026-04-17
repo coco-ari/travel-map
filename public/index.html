@@ -3,21 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>旅游地图</title>
+  <title>吃货地图</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="css/wechat.css">
 </head>
 <body ontouchstart="">
   <div id="app">
     <header class="navbar">
-      <label class="toggle" style="margin-left:auto;position:absolute;left:12px;">
+      <span class="navbar-title">吃货地图</span>
+      <a href="/admin" class="navbar-btn">列表</a>
+      <a href="/visited" class="navbar-btn">已吃</a>
+    </header>
+    <div class="search-bar">
+      <input id="search-input" class="search-input" placeholder="搜索店铺..." type="search">
+    </div>
+    <div id="tag-bar" class="tag-bar">
+      <span class="tag tag-active" data-tag="all">全部</span>
+      <span class="tag" data-tag="火锅">火锅</span>
+      <span class="tag" data-tag="湘菜">湘菜</span>
+      <span class="tag" data-tag="粤菜">粤菜</span>
+      <span class="tag" data-tag="点心">点心</span>
+      <span class="tag" data-tag="烧烤">烧烤</span>
+      <span class="tag" data-tag="客家菜">客家菜</span>
+      <span class="tag" data-tag="川菜">川菜</span>
+      <span class="tag" data-tag="茶餐厅">茶餐厅</span>
+    </div>
+    <div class="toggle-row">
+      <label class="toggle">
         <input type="checkbox" id="show-all-toggle" onchange="toggleShowAll()">
         <span class="toggle-slider"></span>
       </label>
-      <span class="navbar-title">旅游地图</span>
-      <a href="/admin" class="navbar-btn">列表</a>
-    </header>
-    <div id="show-all-label" style="position:fixed;top:52px;left:12px;font-size:12px;color:#999;z-index:999;">显示全部</div>
+      <span class="show-all-label">显示全部</span>
+    </div>
     <main id="map-container"></main>
     <div id="longpress-hint" class="longpress-hint">长按地图添加店铺</div>
   </div>

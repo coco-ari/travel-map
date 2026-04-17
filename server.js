@@ -16,6 +16,52 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+app.get('/visited', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'visited.html'));
+});
+
+// Auto-tag restaurants based on name patterns
+function autoTag(name) {
+  const rules = [
+    [/火锅|牛肉火锅|重庆火锅/, '火锅'],
+    [/椰子鸡/, '粤菜'],
+    [/湘菜|辣椒炒肉|笨萝卜|浏阳蒸菜/, '湘菜'],
+    [/点都德|陶陶居|蔡澜|港式点心/, '点心'],
+    [/烧烤/, '烧烤'],
+    [/客家菜/, '客家菜'],
+    [/西贝莜面村/, '西北菜'],
+    [/酸菜鱼/, '川菜'],
+    [/茶餐厅|港式/, '茶餐厅'],
+    [/蒸菜/, '湘菜'],
+    [/椰子/, '粤菜'],
+    [/莆田/, '闽菜'],
+    [/桂满陇/, '江浙菜'],
+    [/南京大牌档/, '江浙菜'],
+    [/探鱼/, '烤鱼'],
+    [/费大厨/, '湘菜'],
+    [/农耕记/, '湘菜'],
+    [/翠园/, '粤菜'],
+    [/炳胜/, '粤菜'],
+    [/海底捞/, '火锅'],
+    [/木屋烧烤/, '烧烤'],
+    [/胜记/, '粤菜'],
+    [/凑凑/, '火锅'],
+    [/怂重庆/, '火锅'],
+    [/文和友/, '湘菜'],
+    [/利宝阁/, '粤菜'],
+    [/半岛/, '粤菜'],
+    [/嘉味/, '粤菜'],
+    [/喜茶/, '茶饮'],
+    [/左庭右院/, '火锅'],
+    [/佬麻雀/, '湘菜'],
+  ];
+  const tags = [];
+  for (const [re, tag] of rules) {
+    if (re.test(name) && !tags.includes(tag)) tags.push(tag);
+  }
+  return tags.join(',');
+}
+
 // API routes
 const multer = require('multer');
 const fs = require('fs');
@@ -43,8 +89,24 @@ const upload = multer({
 });
 
 app.get('/api/shops', (req, res) => {
-  const { status } = req.query;
+  const { status, search: q, visited } = req.query;
+  if (q) {
+    return res.json(db.search(q));
+  }
+  if (visited === 'true') {
+    return res.json(db.getVisited());
+  }
   res.json(db.getAll(status));
+});
+
+app.patch('/api/shops/:id/notes', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const { notes, rating } = req.body;
+  if (!db.getById(id)) {
+    return res.status(404).json({ error: 'shop not found' });
+  }
+  const shop = db.updateNotes(id, notes || '', rating || 0);
+  res.json(shop);
 });
 
 app.post('/api/shops', (req, res) => {
@@ -52,7 +114,7 @@ app.post('/api/shops', (req, res) => {
   if (!name || lat == null || lng == null) {
     return res.status(400).json({ error: 'name, lat, lng are required' });
   }
-  const shop = db.create({ name, lat, lng });
+  const shop = db.create({ name, lat, lng, tags: autoTag(name) });
   res.status(201).json(shop);
 });
 
@@ -118,12 +180,21 @@ if (require.main === module) {
   if (shops.length === 0) {
     const { seedRestaurants } = require('./seed-data');
     for (const r of seedRestaurants) {
-      db.create(r);
+      db.create({ ...r, tags: autoTag(r.name) });
     }
     console.log(`Auto-seeded ${seedRestaurants.length} restaurants.`);
+  } else {
+    // Tag any untagged existing shops
+    const untagged = shops.filter(s => !s.tags);
+    if (untagged.length > 0) {
+      for (const s of untagged) {
+        db.prepare('UPDATE shops SET tags = ? WHERE id = ?').run(autoTag(s.name), s.id);
+      }
+      console.log(`Auto-tagged ${untagged.length} existing shops.`);
+    }
   }
 
   app.listen(PORT, () => {
-    console.log(`Travel Map server running on http://localhost:${PORT}`);
+    console.log(`吃货地图 server running on http://localhost:${PORT}`);
   });
 }

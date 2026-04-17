@@ -1,7 +1,7 @@
 {
   "name": "travel-map",
   "version": "1.0.0",
-  "description": "旅游地图 - 在地图上标记你想去的店铺",
+  "description": "吃货地图 - 在地图上标记你想去的美食店铺",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

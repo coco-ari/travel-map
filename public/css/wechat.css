@@ -66,15 +66,101 @@ body {
   background: var(--tap-color);
 }
 
-/* ===== MapContainer ===== */
+/* ===== Map Container ===== */
 #map-container {
   position: fixed;
-  top: var(--navbar-height);
+  top: 128px;
   left: 0;
   right: 0;
   bottom: 0;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ===== Search Bar ===== */
+.search-bar {
+  position: fixed;
+  top: 48px;
+  left: 0;
+  right: 0;
+  padding: 8px 12px;
+  background: var(--card-bg);
+  z-index: 999;
+  border-bottom: 1px solid var(--divider);
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--bg-color);
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: var(--wechat-green);
+  background: var(--card-bg);
+}
+
+/* ===== Tag Bar ===== */
+.tag-bar {
+  position: fixed;
+  top: 88px;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--card-bg);
+  z-index: 999;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-bottom: 1px solid var(--divider);
+}
+
+.tag-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--bg-color);
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.tag:active {
+  opacity: 0.7;
+}
+
+.tag-active {
+  background: var(--wechat-green) !important;
+  color: #fff !important;
+}
+
+/* ===== Toggle Row ===== */
+.toggle-row {
+  position: fixed;
+  top: 128px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 999;
+}
+
+.show-all-label {
+  font-size: 12px;
+  color: var(--text-secondary);
   user-select: none;
 }
 
@@ -291,7 +377,13 @@ body {
 .shop-popup-name {
   font-size: 15px;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+}
+
+.shop-popup-dist {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
 }
 
 .shop-popup-actions {
@@ -368,12 +460,6 @@ body {
   margin-right: auto;
 }
 
-/* ===== Map Toggle Label ===== */
-#show-all-label {
-  user-select: none;
-  pointer-events: none;
-}
-
 /* ===== Leaflet Popup Overrides ===== */
 .leaflet-popup-content-wrapper {
   border-radius: 12px;
@@ -386,6 +472,57 @@ body {
 /* ===== Shop Detail Modal ===== */
 .shop-detail-modal {
   max-width: 360px;
+}
+
+/* ===== Rating Stars ===== */
+.rating-section {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.stars {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.star {
+  font-size: 20px;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.star-active {
+  color: #FFC107;
+}
+
+.star:active {
+  transform: scale(1.2);
+}
+
+/* ===== Notes Textarea ===== */
+.notes-section {
+  margin-top: 8px;
+}
+
+.notes-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--bg-color);
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+.notes-input:focus {
+  border-color: var(--wechat-green);
+  background: var(--card-bg);
 }
 
 /* ===== Photo Grid ===== */
