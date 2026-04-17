@@ -1,10 +1,12 @@
 const express = require('express');
 const path = require('path');
+const Database = require('better-sqlite3');
 const db = require('./db');
 const multer = require('multer');
 const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 9800;
+const dbPath = process.env.DB_PATH || path.join(__dirname, 'data.db');
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -140,6 +142,16 @@ app.delete('/api/shops/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+app.patch('/api/shops/:id/location', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const { lat, lng } = req.body;
+  if (!db.getById(id)) {
+    return res.status(404).json({ error: 'shop not found' });
+  }
+  const shop = db.updateLocation(id, lat, lng);
+  res.json(shop);
+});
+
 app.patch('/api/shops/:id/status', (req, res) => {
   const id = parseInt(req.params.id, 10);
   const { status } = req.body;
@@ -203,9 +215,11 @@ if (require.main === module) {
     // Tag any untagged existing shops
     const untagged = shops.filter(s => !s.tags);
     if (untagged.length > 0) {
+      const raw = new Database(dbPath);
       for (const s of untagged) {
-        db.prepare('UPDATE shops SET tags = ? WHERE id = ?').run(autoTag(s.name), s.id);
+        raw.prepare('UPDATE shops SET tags = ? WHERE id = ?').run(autoTag(s.name), s.id);
       }
+      raw.close();
       console.log(`Auto-tagged ${untagged.length} existing shops.`);
     }
   }

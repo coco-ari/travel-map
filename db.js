@@ -116,6 +116,11 @@ function updateStatus(id, status) {
   return db.prepare('SELECT * FROM shops WHERE id = ?').get(id);
 }
 
+function updateLocation(id, lat, lng) {
+  db.prepare('UPDATE shops SET lat = ?, lng = ? WHERE id = ?').run(lat, lng, id);
+  return db.prepare('SELECT * FROM shops WHERE id = ?').get(id);
+}
+
 function search(keyword, status) {
   if (status && status !== 'all') {
     return db.prepare(
@@ -138,4 +143,4 @@ function updateNotes(id, notes, rating) {
   return db.prepare('SELECT * FROM shops WHERE id = ?').get(id);
 }
 
-module.exports = { getAll, create, getById, remove, updateStatus, addPhoto, getPhotosByShopId, deletePhoto, removePhoto, search, getVisited, updateNotes };
+module.exports = { getAll, create, getById, remove, updateStatus, updateLocation, addPhoto, getPhotosByShopId, deletePhoto, removePhoto, search, getVisited, updateNotes };

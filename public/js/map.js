@@ -461,6 +461,7 @@ function createShopPopup(shop) {
     <div class="shop-popup-actions">
       <button class="btn btn-primary btn-sm" data-action="markVisited" data-id="${shop.id}">已吃</button>
       <button class="btn btn-secondary btn-sm" data-action="showDetail" data-id="${shop.id}">详情</button>
+      <button class="btn btn-secondary btn-sm" data-action="moveShop" data-id="${shop.id}">移动</button>
       <button class="btn btn-secondary btn-sm" data-action="navigateTo" data-lat="${shop.lat}" data-lng="${shop.lng}">导航</button>
     </div>
   `;
@@ -472,9 +473,94 @@ function createShopPopup(shop) {
     if (action === 'markVisited') markVisited(Number(btn.dataset.id));
     else if (action === 'showDetail') showDetail(Number(btn.dataset.id));
     else if (action === 'navigateTo') navigateTo(Number(btn.dataset.lat), Number(btn.dataset.lng));
+    else if (action === 'moveShop') startMoveShop(Number(btn.dataset.id));
   });
 
   return popup;
+}
+
+// ===== Move Shop =====
+let movingShopId = null;
+let movingMarker = null;
+let moveHint = null;
+
+function startMoveShop(id) {
+  const shop = allShops.find(s => s.id === id);
+  if (!shop) return;
+
+  // Remove old marker
+  const oldMarker = shopMarkers[id];
+  if (oldMarker) {
+    map.removeLayer(oldMarker);
+    delete shopMarkers[id];
+  }
+
+  // Create a temporary draggable orange marker
+  movingShopId = id;
+  const icon = L.divIcon({
+    className: 'temp-move-pin',
+    html: `<div style="width:22px;height:22px;background:#FF9F00;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 6px rgba(255,159,0,0.2);animation:pulse 1s infinite;"></div>`,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+    draggable: true,
+  });
+
+  movingMarker = L.marker([shop.lat, shop.lng], { icon, draggable: true, zIndexOffset: 2000 }).addTo(map);
+  map.setView([shop.lat, shop.lng], 16);
+
+  // Show hint
+  if (moveHint) moveHint.remove();
+  moveHint = L.control({ position: 'bottomcenter' }).addTo(map);
+  moveHint.onAdd = function() {
+    const div = L.DomUtil.create('div', 'move-hint');
+    div.innerHTML = `<span class="move-hint-text">拖动橙色圆点到新位置，点击确定</span>
+      <button class="move-confirm-btn" onclick="confirmMoveShop()">确定</button>
+      <button class="move-cancel-btn" onclick="cancelMoveShop()">取消</button>`;
+    return div;
+  };
+
+  // Disable map dragging so user only moves the marker
+  map.dragging.disable();
+}
+
+window.confirmMoveShop = function() {
+  if (!movingShopId || !movingMarker) return;
+  const newPos = movingMarker.getLatLng();
+
+  // Update shop in DB
+  fetch(`/api/shops/${movingShopId}/location`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lat: newPos.lat, lng: newPos.lng }),
+  }).then(res => {
+    if (res.ok) return res.json();
+  }).then(updated => {
+    if (updated) {
+      const idx = allShops.findIndex(s => s.id === movingShopId);
+      if (idx !== -1) {
+        allShops[idx] = { ...allShops[idx], lat: updated.lat, lng: updated.lng };
+      }
+    }
+    finishMoveShop();
+  }).catch(() => finishMoveShop());
+};
+
+window.cancelMoveShop = function() {
+  finishMoveShop();
+};
+
+function finishMoveShop() {
+  if (movingMarker) {
+    map.removeLayer(movingMarker);
+    movingMarker = null;
+  }
+  if (moveHint) {
+    map.removeControl(moveHint);
+    moveHint = null;
+  }
+  map.dragging.enable();
+  movingShopId = null;
+  renderMarkers();
 }
 
 // ===== View Toggle =====
