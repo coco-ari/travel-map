@@ -199,32 +199,178 @@ window.navigateTo = function(lat, lng) {
 };
 
 // ===== Add Shop Mode =====
-let addMode = false;
+let pendingMarker = null;
+let pendingLat = null;
+let pendingLng = null;
 
-window.toggleAddMode = function() {
-  addMode = !addMode;
-  document.getElementById('add-btn').textContent = addMode ? '取消' : '添加';
-  document.getElementById('add-btn').classList.toggle('btn-primary', !addMode);
-  document.getElementById('add-btn').classList.toggle('btn-danger', addMode);
-  map.getContainer().style.cursor = addMode ? 'crosshair' : '';
-};
+function startAddShop(lat, lng) {
+  // Hide hint
+  const hint = document.getElementById('longpress-hint');
+  if (hint) hint.style.opacity = '0';
 
-map.on('click', async (e) => {
-  if (!addMode) return;
+  // Remove existing pending marker
+  if (pendingMarker) {
+    map.removeLayer(pendingMarker);
+    pendingMarker = null;
+  }
+  pendingLat = lat;
+  pendingLng = lng;
 
-  const name = prompt('请输入店名:');
-  if (!name) return;
+  // Create draggable temp marker (orange, pulsing)
+  const icon = L.divIcon({
+    className: 'temp-pin',
+    html: `<div style="
+      width: 20px; height: 20px;
+      background: #FF9F00;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgba(255,159,0,0.3);
+      animation: pulse 1s infinite;
+    "></div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    draggable: true,
+  });
+
+  pendingMarker = L.marker([lat, lng], { icon, draggable: true }).addTo(map);
+
+  // Update position when dragged
+  pendingMarker.on('dragend', (e) => {
+    const pos = e.target.getLatLng();
+    pendingLat = pos.lat;
+    pendingLng = pos.lng;
+  });
+
+  // Show input modal
+  showAddModal();
+}
+
+function showAddModal() {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'add-shop-modal';
+  modal.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">添加店铺</div>
+      <div class="modal-body">
+        <input id="add-shop-name" class="input" placeholder="请输入店名" maxlength="100">
+        <div style="margin-top:8px;font-size:12px;color:#999;">
+          坐标: ${pendingLat.toFixed(4)}, ${pendingLng.toFixed(4)}
+          <span style="color:#999;font-size:11px;">（可在地图上拖动标记调整位置）</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="add-cancel-btn">取消</button>
+        <button class="btn btn-confirm" id="add-confirm-btn">确定</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  // Event listeners
+  modal.querySelector('#add-cancel-btn').addEventListener('click', cancelAddShop);
+  modal.querySelector('#add-confirm-btn').addEventListener('click', confirmAddShop);
+
+  // Auto-focus input
+  setTimeout(() => {
+    const input = document.getElementById('add-shop-name');
+    if (input) input.focus();
+  }, 300);
+
+  // Enter key to confirm
+  document.getElementById('add-shop-name').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') confirmAddShop();
+  });
+
+  // Tap overlay to cancel
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) cancelAddShop();
+  });
+}
+
+function cancelAddShop() {
+  const modal = document.getElementById('add-shop-modal');
+  if (modal) modal.remove();
+  if (pendingMarker) {
+    map.removeLayer(pendingMarker);
+    pendingMarker = null;
+  }
+  pendingLat = null;
+  pendingLng = null;
+}
+
+async function confirmAddShop() {
+  const name = document.getElementById('add-shop-name').value.trim();
+  if (!name) {
+    alert('请输入店名');
+    return;
+  }
 
   const res = await fetch('/api/shops', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, lat: e.latlng.lat, lng: e.latlng.lng }),
+    body: JSON.stringify({ name, lat: pendingLat, lng: pendingLng }),
   });
 
   if (res.ok) {
     const shop = await res.json();
     addShopMarker(shop);
-    toggleAddMode();
+    // Close modal
+    const modal = document.getElementById('add-shop-modal');
+    if (modal) modal.remove();
+    if (pendingMarker) {
+      map.removeLayer(pendingMarker);
+      pendingMarker = null;
+    }
+    pendingLat = null;
+    pendingLng = null;
+  } else {
+    alert('添加失败，请重试');
+  }
+}
+
+// Long press detection
+let longPressTimer = null;
+const LONG_PRESS_DURATION = 500; // 500ms
+
+map.on('touchstart', (e) => {
+  if (pendingMarker) return; // Don't trigger if already in add mode
+  const lat = e.latlng.lat;
+  const lng = e.latlng.lng;
+  longPressTimer = setTimeout(() => {
+    startAddShop(lat, lng);
+  }, LONG_PRESS_DURATION);
+});
+
+map.on('touchmove', () => {
+  // Cancel long press if user drags the map
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+});
+
+map.on('touchend', () => {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+});
+
+// Mouse fallback for desktop testing
+map.on('mousedown', (e) => {
+  if (pendingMarker) return;
+  const lat = e.latlng.lat;
+  const lng = e.latlng.lng;
+  longPressTimer = setTimeout(() => {
+    startAddShop(lat, lng);
+  }, LONG_PRESS_DURATION);
+});
+
+map.on('mouseup mousemove', () => {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
   }
 });
 

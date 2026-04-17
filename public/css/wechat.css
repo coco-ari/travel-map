@@ -307,12 +307,32 @@ body {
   border: none !important;
 }
 
-.add-btn {
+/* ===== Long-press Hint ===== */
+.longpress-hint {
   position: fixed;
   bottom: 24px;
-  right: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 13px;
   z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  pointer-events: none;
+  transition: opacity 0.5s;
+}
+
+/* ===== Pulse Animation ===== */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255,159,0,0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(255,159,0,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,159,0,0); }
+}
+
+.temp-pin {
+  background: transparent !important;
+  border: none !important;
 }
 
 /* ===== Map Toggle Label ===== */
