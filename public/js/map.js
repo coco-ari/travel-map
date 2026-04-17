@@ -663,6 +663,7 @@ if (searchInput) {
     searchTimer = setTimeout(() => performSearch(e.target.value.trim()), 200);
   });
   searchInput.addEventListener('focus', () => {
+    if (currentView === 'card') return;
     if (searchInput.value.trim()) showSearchResults(allShops.filter(s => s.name.includes(searchInput.value.trim())));
   });
 }
