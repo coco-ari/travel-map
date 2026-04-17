@@ -136,8 +136,10 @@ function renderCards(reset) {
 
   // Filter and sort by distance
   let shops = [...allShops];
-  if (userLat && userLng) {
+  if (userLat && userLng && distanceFilter > 0) {
     shops = shops.filter(s => getDistance(userLat, userLng, s.lat, s.lng) <= distanceFilter * 1000);
+    shops.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
+  } else if (userLat && userLng) {
     shops.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
   }
   cardFilteredShops = shops;
