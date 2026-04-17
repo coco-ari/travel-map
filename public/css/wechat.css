@@ -764,7 +764,12 @@ body::after {
 .shop-marker-icon {
   display: block;
   margin: 0 auto;
-  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
+  filter: drop-shadow(2px 3px 0 var(--ink));
+  transition: transform 0.15s;
+}
+
+.shop-marker-wrapper:active .shop-marker-icon {
+  transform: scale(1.2) rotate(-8deg);
 }
 
 .shop-marker-label {
@@ -773,11 +778,11 @@ body::after {
   color: var(--ink);
   font-weight: 400;
   text-shadow:
-    -1px -1px 0 #fff,
-    1px -1px 0 #fff,
-    -1px 1px 0 #fff,
-    1px 1px 0 #fff,
-    0 0 4px #fff;
+    -2px -2px 0 #fff,
+    2px -2px 0 #fff,
+    -2px 2px 0 #fff,
+    2px 2px 0 #fff,
+    0 0 6px #fff;
   max-width: 100px;
   white-space: normal;
   word-break: break-all;
@@ -787,6 +792,10 @@ body::after {
   margin-top: 2px;
   margin-left: auto;
   margin-right: auto;
+  padding: 1px 4px;
+  background: rgba(255,255,255,0.7);
+  border: 1.5px solid var(--ink);
+  border-radius: 3px;
 }
 
 /* ===== Pulse ===== */
