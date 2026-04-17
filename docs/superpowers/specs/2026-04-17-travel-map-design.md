@@ -1,15 +1,15 @@
-# 旅游地图 (Travel Map) — Design Spec
+# 旅游地图 — 设计文档
 
-## Overview
-A mobile-first web app that shows a map centered on the user's current location, lets them add restaurants/shops as markers on the map, and manage them via an admin list. Data is persisted in SQLite on the server.
+## 概述
+一个移动端优先的网页应用，打开后显示以用户当前位置为中心的地图，用户可以在地图上标记想去的店铺/餐厅，并通过管理后台列表管理这些店铺数据。数据持久化在服务端的 SQLite 中。
 
-## Tech Stack
-- **Frontend**: Vanilla JS + Leaflet.js (OpenStreetMap tiles, no API key needed)
-- **Backend**: Node.js + Express
-- **Database**: SQLite (single table)
-- **Deployment**: Tencent Cloud VPS with public IP, managed by pm2/systemd
+## 技术栈
+- **前端**: 原生 JavaScript + Leaflet.js（OpenStreetMap 瓦片，无需 API Key）
+- **后端**: Node.js + Express
+- **数据库**: SQLite（单表）
+- **部署**: 腾讯云 VPS 公网 IP，使用 pm2/systemd 管理进程
 
-## Architecture
+## 系统架构
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -23,7 +23,7 @@ A mobile-first web app that shows a map centered on the user's current location,
 │  │   - 弹出表单输入店名                    │   │
 │  └───────────────────────────────────────┘   │
 │  ┌───────────────────────────────────────┐   │
-│  │         店铺管理列表 (Admin)            │   │
+│  │         店铺管理列表 (后台)              │   │
 │  │   - 新增 / 删除店铺                    │   │
 │  └───────────────────────────────────────┘   │
 │         ↕ HTTP REST API                      │
@@ -32,7 +32,7 @@ A mobile-first web app that shows a map centered on the user's current location,
 ┌─────────────────┴───────────────────────────┐
 │            Node.js + Express                 │
 │  ┌─────────┐  ┌──────────┐  ┌────────────┐  │
-│  │ GET /shops│ │POST/shops│ │DELETE/shops│  │
+│  │GET /shops│ │POST/shops│ │DELETE/shops│  │
 │  └─────────┘  └──────────┘  └────────────┘  │
 │         ↕                                    │
 │  ┌───────────────────────────────────────┐   │
@@ -43,23 +43,23 @@ A mobile-first web app that shows a map centered on the user's current location,
 └─────────────────────────────────────────────┘
 ```
 
-- Monolithic: Express serves static HTML/JS directly
-- No auth (personal tool)
+- 前后端一体：Express 直接提供静态 HTML/JS 文件
+- 无认证/登录（个人自用工具）
 
-## Database Schema
+## 数据库表结构
 
 ```sql
 CREATE TABLE shops (
   id          INTEGER PRIMARY KEY,
-  name        TEXT NOT NULL,
-  lat         REAL NOT NULL,
-  lng         REAL NOT NULL,
-  status      TEXT DEFAULT 'unvisited',  -- 'visited' | 'unvisited'
-  created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  name        TEXT NOT NULL,       -- 店名
+  lat         REAL NOT NULL,       -- 纬度
+  lng         REAL NOT NULL,       -- 经度
+  status      TEXT DEFAULT 'unvisited',  -- 状态：'visited'（已去）| 'unvisited'（未去）
+  created_at  DATETIME DEFAULT CURRENT_TIMESTAMP  -- 创建时间
 );
 ```
 
-## API Endpoints
+## API 接口
 
 ```
 GET    /api/shops              — 获取所有店铺（支持 ?status=unvisited 过滤）
@@ -68,21 +68,22 @@ DELETE /api/shops/:id          — 删除店铺
 PATCH  /api/shops/:id/status   — 更新状态 {status: "visited" | "unvisited"}
 ```
 
-## Page Routes
+## 页面路由
 
 ```
 GET  /          — 地图主页
 GET  /admin     — 店铺管理列表
 ```
 
-## Frontend
+## 前端设计
 
-### Page 1: Map (default homepage)
-- Browser requests GPS on load via `navigator.geolocation`
-- Map centers on current position with blue location marker
-- Existing shops shown as markers on the map
-- **Add shop**: click "Add" button then tap map location → popup input for name → confirm → new marker appears
-- **Shop marker popup**:
+### 页面一：地图主页（默认首页）
+
+- 页面加载时通过 `navigator.geolocation` 请求浏览器 GPS 定位
+- 地图以当前位置为中心，显示蓝色定位标记
+- 已有的店铺以标记形式展示在地图上
+- **添加店铺**: 点击"添加"按钮后点击地图位置 → 弹出输入框填写店名 → 确认 → 新标记出现
+- **店铺标记气泡**:
   ```
   ┌─────────────────────────┐
   │        店铺名称            │
@@ -90,22 +91,23 @@ GET  /admin     — 店铺管理列表
   │  [已吃]  [详情]  [导航]    │
   └─────────────────────────┘
   ```
-  - **已吃**: marks shop as visited, marker turns gray/strikethrough
-  - **详情**: popup card showing name, coordinates, created_at, status
-  - **导航**: opens Amap via URL Scheme `amapuri://route/plan/?slat=current&slon=current&dlat=target&dlon=target&dev=0`, fallback to browser map navigation
-- Default filter: only shows "unvisited" shops
-- Nearby highlight: unvisited shops within 2km of current location are enlarged + orange color, other unvisited shops are blue
-- Toggle switch "显示全部" to show visited shops (gray markers)
-- "列表" icon in corner → navigates to admin page
+  - **已吃**: 标记该店铺为"已去过"，标记变灰
+  - **详情**: 弹出卡片显示店名、经纬度坐标、添加时间、状态
+  - **导航**: 通过 URL Scheme 直接唤起高德地图 `amapuri://route/plan/?slat=当前&slon=当前&dlat=目标&dlon=目标&dev=0`，未安装则 fallback 到浏览器地图导航
+- **默认过滤**: 仅显示"未去"状态的店铺
+- **附近高亮**: 距离当前位置 2km 内未去的店铺，标记放大并显示橙色，其余未去店铺显示蓝色
+- **"显示全部"开关**: 打开后显示已去的店铺（灰色标记）
+- 右上角"列表"图标 → 进入管理页面
 
-### Page 2: Admin (Shop Management)
-- Card/list view of all shops, sorted by creation date descending
-- Each entry: name, coordinates, mini-map thumbnail
-- Actions: delete (confirmation dialog)
-- "返回地图" button at top
-- "手动添加" button: manual input of coordinates + name
+### 页面二：店铺管理后台
 
-## Deployment
-- Tencent Cloud VPS with public IP
-- Process manager: pm2 or systemd
-- Nginx reverse proxy (optional)
+- 卡片/列表形式展示所有店铺，按创建时间倒序排列
+- 每条显示：店名、经纬度、缩略地图
+- 操作：删除（确认弹窗）
+- 顶部"返回地图"按钮
+- "手动添加"按钮：手动输入坐标和店名
+
+## 部署方案
+- 腾讯云 VPS 公网 IP
+- 进程管理：pm2 或 systemd
+- Nginx 反向代理（可选）
