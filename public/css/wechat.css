@@ -1,7 +1,7 @@
 /* ===== CSS Variables ===== */
 :root {
   --wechat-green: #07C160;
-  --bg-color: #EDEDED;
+  --bg-color: #F5F5F5;
   --card-bg: #FFFFFF;
   --text-primary: #333333;
   --text-secondary: #999999;
@@ -12,6 +12,7 @@
   --danger: #FA5151;
   --tap-color: #F0F0F0;
   --navbar-height: 48px;
+  --card-radius: 12px;
 }
 
 /* ===== Reset ===== */
@@ -80,18 +81,6 @@ body {
   margin-right: auto;
 }
 
-/* ===== Map Container ===== */
-#map-container {
-  position: fixed;
-  top: 128px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
 /* ===== Search Bar ===== */
 .search-bar {
   position: fixed;
@@ -101,82 +90,204 @@ body {
   padding: 8px 12px;
   background: var(--card-bg);
   z-index: 999;
-  border-bottom: 1px solid var(--divider);
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border: 1px solid var(--divider);
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 20px;
+  font-size: 15px;
   background: var(--bg-color);
   outline: none;
+  transition: all 0.2s;
 }
 
 .search-input:focus {
   border-color: var(--wechat-green);
   background: var(--card-bg);
+  box-shadow: 0 0 0 3px rgba(7,193,96,0.1);
 }
 
-/* ===== Tag Bar ===== */
-.tag-bar {
+/* ===== View Toggle ===== */
+.view-toggle {
   position: fixed;
   top: 88px;
-  left: 0;
-  right: 0;
-  display: flex;
-  gap: 6px;
-  padding: 8px 12px;
-  background: var(--card-bg);
-  z-index: 999;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  border-bottom: 1px solid var(--divider);
-}
-
-.tag-bar::-webkit-scrollbar {
-  display: none;
-}
-
-.tag {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  background: var(--bg-color);
-  white-space: nowrap;
-  cursor: pointer;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-.tag:active {
-  opacity: 0.7;
-}
-
-.tag-active {
-  background: var(--wechat-green) !important;
-  color: #fff !important;
-}
-
-/* ===== Toggle Row ===== */
-.toggle-row {
-  position: fixed;
-  top: 128px;
   left: 12px;
+  right: 12px;
   display: flex;
-  align-items: center;
   gap: 8px;
   z-index: 999;
 }
 
-.show-all-label {
-  font-size: 12px;
+.view-btn {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--card-bg);
   color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.view-btn:active {
+  opacity: 0.7;
+}
+
+.view-btn-active {
+  background: var(--wechat-green) !important;
+  color: #fff !important;
+}
+
+/* ===== Card View ===== */
+#card-view {
+  position: fixed;
+  top: 132px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px;
+}
+
+#card-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.shop-card {
+  background: var(--card-bg);
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+
+.shop-card:active {
+  transform: scale(0.97);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.card-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #FFE4C4, #FFDAB9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.card-image-emoji {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-status-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  color: #fff;
+  font-weight: 500;
+}
+
+.card-badge-unvisited {
+  background: var(--orange);
+}
+
+.card-badge-visited {
+  background: var(--gray);
+}
+
+.card-rating-badge {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(0,0,0,0.6);
+  color: #FFC107;
+}
+
+.card-body {
+  padding: 8px 10px;
+}
+
+.card-name {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.card-dist {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.card-tag {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--bg-color);
+  font-size: 10px;
+}
+
+/* Card Empty State */
+.card-empty {
+  text-align: center;
+  padding: 60px 16px;
+  color: var(--text-secondary);
+}
+
+.card-empty-emoji {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+/* ===== Map View ===== */
+#map-container {
+  position: fixed;
+  top: 132px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
   user-select: none;
 }
+
+.hidden { display: none !important; }
 
 /* ===== Buttons ===== */
 .btn {
@@ -211,6 +322,11 @@ body {
   border: 1px solid var(--divider);
 }
 
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
 /* ===== Modal / Popup ===== */
 .modal-overlay {
   position: fixed;
@@ -226,8 +342,10 @@ body {
   background: var(--card-bg);
   border-radius: 12px;
   width: 85%;
-  max-width: 320px;
+  max-width: 360px;
   overflow: hidden;
+  max-height: 85vh;
+  overflow-y: auto;
 }
 
 .modal-header {
@@ -264,10 +382,6 @@ body {
   font-weight: 600;
 }
 
-.modal-footer .btn-danger {
-  color: var(--danger);
-}
-
 /* ===== ActionSheet ===== */
 .actionsheet-overlay {
   position: fixed;
@@ -287,16 +401,11 @@ body {
   overflow: hidden;
 }
 
-.actionsheet-cancel {
-  margin-top: 8px;
-}
-
 /* ===== Input ===== */
 .input {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--divider);
-  border-bottom: 1px solid var(--divider);
   border-radius: 6px;
   font-size: 16px;
   background: var(--card-bg);
@@ -305,32 +414,6 @@ body {
 
 .input:focus {
   border-color: var(--wechat-green);
-}
-
-/* ===== List ===== */
-.list {
-  padding-top: 48px;
-}
-
-.list-item {
-  background: var(--card-bg);
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--divider);
-}
-
-.list-item:active {
-  background: var(--tap-color);
-}
-
-.list-item-title {
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.list-item-meta {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-top: 4px;
 }
 
 /* ===== Toggle Switch ===== */
@@ -376,44 +459,43 @@ body {
 }
 
 /* ===== Utility ===== */
-.hidden { display: none !important; }
 .text-center { text-align: center; }
-.mt-8 { margin-top: 8px; }
-.mt-16 { margin-top: 16px; }
 .flex-center { display: flex; align-items: center; justify-content: center; }
 
-/* ===== Shop Popup ===== */
-.shop-popup {
-  text-align: center;
-  min-width: 120px;
-}
-
-.shop-popup-name {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.shop-popup-dist {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-}
-
-.shop-popup-actions {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-}
-
-.btn-sm {
-  padding: 4px 10px;
-  font-size: 13px;
-}
-
+/* ===== Location Pin ===== */
 .location-pin {
   background: transparent !important;
   border: none !important;
+}
+
+/* ===== Shop Pin ===== */
+.shop-pin {
+  background: transparent !important;
+  border: none !important;
+}
+
+.shop-marker-wrapper {
+  text-align: center;
+}
+
+.shop-marker-icon {
+  display: block;
+  margin: 0 auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.shop-marker-label {
+  font-size: 11px;
+  color: #333;
+  font-weight: 500;
+  text-shadow: 0 0 3px #fff, 0 0 3px #fff;
+  max-width: 100px;
+  white-space: normal;
+  word-break: break-all;
+  line-height: 1.3;
+  margin-top: 2px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* ===== Long-press Hint ===== */
@@ -444,48 +526,36 @@ body {
   border: none !important;
 }
 
-/* ===== Shop Marker ===== */
-.shop-pin {
-  background: transparent !important;
-  border: none !important;
-}
-
-.shop-marker-wrapper {
+/* ===== Leaflet Popup ===== */
+.shop-popup {
   text-align: center;
+  min-width: 120px;
 }
 
-.shop-marker-icon {
-  display: block;
-  margin: 0 auto;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+.shop-popup-name {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
-.shop-marker-label {
-  font-size: 11px;
-  color: #333;
-  font-weight: 500;
-  text-shadow: 0 0 3px #fff, 0 0 3px #fff;
-  max-width: 100px;
-  white-space: normal;
-  word-break: break-all;
-  line-height: 1.3;
-  margin-top: 2px;
-  margin-left: auto;
-  margin-right: auto;
+.shop-popup-dist {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
 }
 
-/* ===== Leaflet Popup Overrides ===== */
+.shop-popup-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
 .leaflet-popup-content-wrapper {
   border-radius: 12px;
 }
 
 .leaflet-popup-content {
   margin: 12px;
-}
-
-/* ===== Shop Detail Modal ===== */
-.shop-detail-modal {
-  max-width: 360px;
 }
 
 /* ===== Rating Stars ===== */
@@ -516,7 +586,7 @@ body {
   transform: scale(1.2);
 }
 
-/* ===== Notes Textarea ===== */
+/* ===== Notes ===== */
 .notes-section {
   margin-top: 8px;
 }
@@ -546,7 +616,7 @@ body {
 
 .no-photos {
   text-align: center;
-  color: #999;
+  color: var(--text-secondary);
   font-size: 13px;
   padding: 16px 0;
 }
@@ -574,6 +644,10 @@ body {
 .photo-actions {
   margin-top: 12px;
   text-align: center;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .photo-upload-btn {
@@ -592,7 +666,7 @@ body {
   opacity: 0.8;
 }
 
-/* ===== Photo Preview Overlay ===== */
+/* ===== Photo Preview ===== */
 .photo-preview-overlay {
   position: fixed;
   inset: 0;

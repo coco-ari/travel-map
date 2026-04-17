@@ -91,7 +91,7 @@ const upload = multer({
 app.get('/api/shops', (req, res) => {
   const { status, search: q, visited } = req.query;
   if (q) {
-    return res.json(db.search(q));
+    return res.json(db.search(q, status));
   }
   if (visited === 'true') {
     return res.json(db.getVisited());

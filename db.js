@@ -79,7 +79,12 @@ function updateStatus(id, status) {
   return db.prepare('SELECT * FROM shops WHERE id = ?').get(id);
 }
 
-function search(keyword) {
+function search(keyword, status) {
+  if (status && status !== 'all') {
+    return db.prepare(
+      "SELECT * FROM shops WHERE status = ? AND name LIKE ? ORDER BY created_at DESC"
+    ).all(status, `%${keyword}%`);
+  }
   return db.prepare(
     "SELECT * FROM shops WHERE name LIKE ? ORDER BY created_at DESC"
   ).all(`%${keyword}%`);
