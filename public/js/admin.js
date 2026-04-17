@@ -2,7 +2,6 @@ let deleteTargetId = null;
 let allShops = [];
 let userLat = null;
 let userLng = null;
-let adminDistanceFilter = 0; // 0 = all
 
 function getDistance(lat1, lng1, lat2, lng2) {
   if (lat1 == null || lng1 == null) return Infinity;
@@ -23,13 +22,9 @@ function renderShops() {
   const container = document.getElementById('shop-list');
   container.innerHTML = '';
 
+  // Sort by distance
   let shops = [...allShops];
-
-  // Filter by distance
-  if (adminDistanceFilter > 0 && userLat && userLng) {
-    shops = shops.filter(s => getDistance(userLat, userLng, s.lat, s.lng) <= adminDistanceFilter);
-    shops.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
-  }
+  shops.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
 
   if (shops.length === 0) {
     container.innerHTML = '<div class="list-item text-center" style="color:#999;padding:40px 16px;">暂无店铺记录</div>';
@@ -137,17 +132,7 @@ async function confirmDelete() {
   }
 }
 
-// Distance filter pills
-document.querySelectorAll('.dist-pill').forEach(pill => {
-  pill.addEventListener('click', () => {
-    adminDistanceFilter = Number(pill.dataset.dist);
-    document.querySelectorAll('.dist-pill').forEach(p => p.classList.remove('dist-pill-active'));
-    pill.classList.add('dist-pill-active');
-    renderShops();
-  });
-});
-
-// Get user location for distance filtering
+// Get user location for distance sorting
 if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(
     (pos) => { userLat = pos.coords.latitude; userLng = pos.coords.longitude; },
