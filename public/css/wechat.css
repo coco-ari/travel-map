@@ -451,6 +451,7 @@ body::before {
 /* ===== Card List ===== */
 .distance-bar {
   padding: 6px 0;
+  background: linear-gradient(160deg, var(--bg) 0%, var(--bg-warm) 50%, #F0E6DC 100%);
 }
 
 #card-view .distance-bar {
