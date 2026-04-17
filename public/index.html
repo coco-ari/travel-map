@@ -32,24 +32,14 @@
 
     <!-- Card View -->
     <main id="card-view" class="hidden">
-      <div class="distance-panel">
-        <div class="dist-slider-wrap">
-          <div class="dist-tick-marks">
-            <span class="dist-tick-mark" style="top:0%" onclick="setDistance(100)">100m</span>
-            <span class="dist-tick-mark" style="top:9%" onclick="setDistance(1000)">1km</span>
-            <span class="dist-tick-mark" style="top:19%" onclick="setDistance(2000)">2km</span>
-            <span class="dist-tick-mark" style="top:45%" onclick="setDistance(5000)">5km</span>
-            <span class="dist-tick-mark" style="top:99%" onclick="setDistance(10000)">10km</span>
-          </div>
-          <input type="range" class="dist-slider" id="dist-slider" min="100" max="10000" step="100" value="5000" list="dist-steps">
-          <datalist id="dist-steps">
-            <option value="1000"></option>
-            <option value="2000"></option>
-            <option value="5000"></option>
-          </datalist>
+      <div class="distance-bar">
+        <div class="distance-bar-inner">
+          <span class="dist-pill" data-dist="1000">1km</span>
+          <span class="dist-pill" data-dist="2000">2km</span>
+          <span class="dist-pill dist-pill-active" data-dist="5000">5km</span>
+          <span class="dist-pill" data-dist="10000">10km</span>
+          <span class="dist-pill" id="dist-all-pill" data-dist="0">全部</span>
         </div>
-        <div class="dist-value" id="dist-value">5km</div>
-        <button class="dist-all-btn" id="dist-all-btn" onclick="setAllDistance()">全部</button>
       </div>
       <div id="card-list"></div>
       <div id="card-empty" class="card-empty hidden"></div>

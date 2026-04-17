@@ -449,125 +449,57 @@ body::before {
 }
 
 /* ===== Card List ===== */
-.distance-panel {
-  position: fixed;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
-  z-index: 20;
+.distance-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 8px 16px 4px;
+  background: linear-gradient(160deg, var(--bg) 0%, var(--bg-warm) 50%, #F0E6DC 100%);
+}
+
+.distance-bar-inner {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 6px;
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: 12px 0 0 12px;
-  box-shadow: -2px 4px 16px rgba(0,0,0,0.06);
-  border: 1px solid var(--border);
-  border-right: none;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
 }
 
-.dist-slider-wrap {
-  position: relative;
-  display: flex;
-  align-items: stretch;
+.distance-bar-inner::-webkit-scrollbar {
+  display: none;
 }
 
-.dist-tick-marks {
-  position: relative;
-  width: 32px;
-  height: 220px;
-}
-
-.dist-tick-mark {
-  position: absolute;
-  right: 0;
-  transform: translateY(-50%);
-  font-size: 10px;
+.dist-pill {
+  flex-shrink: 0;
+  padding: 5px 14px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 0.15s;
-}
-
-.dist-tick-mark:active {
-  color: var(--accent);
-}
-
-/* Tick line indicator */
-.dist-tick-mark::after {
-  content: '';
-  position: absolute;
-  left: -4px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 6px;
-  height: 1px;
-  background: var(--border);
-}
-
-.dist-tick-mark.major {
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.dist-tick-mark.major::after {
-  width: 10px;
-  height: 2px;
-  background: var(--accent);
-}
-
-.dist-slider {
-  writing-mode: vertical-lr;
-  direction: rtl;
-  width: 4px;
-  height: 220px;
-  accent-color: var(--accent);
-  cursor: pointer;
-  margin: 0;
-}
-
-.dist-slider::-webkit-slider-thumb {
-  width: 18px;
-  height: 18px;
-}
-
-.dist-slider::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-}
-
-.dist-value {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent);
-  white-space: nowrap;
-}
-
-.dist-all-btn {
-  padding: 4px 8px;
-  font-size: 11px;
-  font-weight: 700;
-  border: none;
-  border-radius: 6px;
-  background: var(--surface-2);
+  border-radius: 20px;
+  background: rgba(255,255,255,0.7);
   color: var(--text-secondary);
   cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  user-select: none;
 }
 
-.dist-all-btn-active {
-  background: var(--accent);
+.dist-pill:active {
+  transform: scale(0.95);
+}
+
+.dist-pill-active {
+  background: var(--accent) !important;
   color: #fff !important;
+  box-shadow: 0 2px 8px var(--accent-glow);
 }
 
 #card-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  padding: 0 64px 100px 16px;
+  padding: 4px 16px 100px;
 }
 
 .shop-card {

@@ -511,44 +511,23 @@ function switchView(view) {
 viewCardBtn.addEventListener('click', () => { if (currentView !== 'card') switchView('card'); });
 viewMapBtn.addEventListener('click', () => { if (currentView !== 'map') switchView('map'); });
 
-// ===== Distance Filter Slider =====
-const distSlider = document.getElementById('dist-slider');
-const distValueEl = document.getElementById('dist-value');
-const distAllBtn = document.getElementById('dist-all-btn');
+// ===== Distance Filter Pills =====
+const distAllPill = document.getElementById('dist-all-pill');
 
 function formatDist(meters) {
   if (meters >= 1000) return (meters / 1000).toFixed(meters % 1000 === 0 ? '0' : '1') + 'km';
   return meters + 'm';
 }
 
-let distRenderTimer = null;
-
-function applyDistance() {
-  distanceFilter = Number(distSlider.value) / 1000;
-  distValueEl.textContent = formatDist(distSlider.value);
-  distAllBtn.classList.remove('dist-all-btn-active');
-  // Debounce card re-render for smooth sliding
-  clearTimeout(distRenderTimer);
-  distRenderTimer = setTimeout(() => renderCards(true), 200);
-}
-
-function setAllDistance() {
-  distanceFilter = 0;
-  distValueEl.textContent = '全部';
-  distAllBtn.classList.add('dist-all-btn-active');
-  renderCards(true);
-}
-window.setAllDistance = setAllDistance;
-
-function setDistance(meters) {
-  distSlider.value = meters;
-  applyDistance();
-}
-window.setDistance = setDistance;
-
-if (distSlider) {
-  distSlider.addEventListener('input', applyDistance);
-}
+document.querySelectorAll('.dist-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    const dist = Number(pill.dataset.dist);
+    distanceFilter = dist / 1000;
+    document.querySelectorAll('.dist-pill').forEach(p => p.classList.remove('dist-pill-active'));
+    pill.classList.add('dist-pill-active');
+    renderCards(true);
+  });
+});
 
 // ===== Search =====
 const searchInput = document.getElementById('search-input');
