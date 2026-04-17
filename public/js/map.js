@@ -956,6 +956,8 @@ function showAddModal() {
 
 function cancelAddShop() {
   addingShop = false;
+  // Clear any pending long-press timers
+  if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
   document.getElementById('add-shop-modal')?.remove();
   if (pendingMarker) { map.removeLayer(pendingMarker); pendingMarker = null; }
   pendingLat = null; pendingLng = null;
@@ -999,6 +1001,8 @@ function initLongPress() {
     if (e.target.closest('.leaflet-marker-icon, .leaflet-popup, .leaflet-control, .shop-marker-wrapper')) return;
     // Only trigger on empty map areas, not on UI controls
     if (e.target.closest('.map-controls, .navbar, .search-bar, .shop-marker-label')) return;
+    // Clear any existing timer before starting new one
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     const touch = e.touches[0];
     if (!touch) return;
     touchStartPos = { x: touch.clientX, y: touch.clientY };
@@ -1032,6 +1036,7 @@ function initLongPress() {
   map.on('contextmenu', (e) => { e.originalEvent.preventDefault(); if (!pendingMarker && !addingShop && !movingShopId) startAddShop(e.latlng.lat, e.latlng.lng); });
   map.on('mousedown', (e) => {
     if (pendingMarker || addingShop || movingShopId) return;
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     longPressTimer = setTimeout(() => { addingShop = true; startAddShop(e.latlng.lat, e.latlng.lng); }, LONG_PRESS_DURATION);
   });
   map.on('mouseup mousemove', () => { if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; } });
