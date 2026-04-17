@@ -477,14 +477,15 @@ body::before {
 
 .dist-pill {
   flex-shrink: 0;
-  padding: 5px 14px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 700;
   border-radius: 20px;
-  background: rgba(255,255,255,0.7);
-  color: var(--text-secondary);
+  background: #fff;
+  color: var(--text);
   cursor: pointer;
-  border: 1px solid transparent;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: all 0.2s;
   white-space: nowrap;
   user-select: none;
@@ -497,7 +498,8 @@ body::before {
 .dist-pill-active {
   background: var(--accent) !important;
   color: #fff !important;
-  box-shadow: 0 2px 8px var(--accent-glow);
+  border-color: var(--accent) !important;
+  box-shadow: 0 2px 8px var(--accent-glow) !important;
 }
 
 #card-list {
