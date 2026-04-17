@@ -278,3 +278,39 @@ body {
 .mt-8 { margin-top: 8px; }
 .mt-16 { margin-top: 16px; }
 .flex-center { display: flex; align-items: center; justify-content: center; }
+
+/* ===== Shop Popup ===== */
+.shop-popup {
+  text-align: center;
+  min-width: 120px;
+}
+
+.shop-popup-name {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.shop-popup-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.location-pin {
+  background: transparent !important;
+  border: none !important;
+}
+
+.add-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 16px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
