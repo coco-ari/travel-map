@@ -786,13 +786,17 @@ body::after {
 }
 
 .shop-marker-wrapper { text-align: center; }
-.shop-marker-icon {
-  display: block;
+.shop-marker-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0 #000;
   margin: 0 auto;
   transition: transform 0.15s;
 }
 
-.shop-marker-wrapper:active .shop-marker-icon {
+.shop-marker-wrapper:active .shop-marker-dot {
   transform: scale(1.2) rotate(-8deg);
 }
 

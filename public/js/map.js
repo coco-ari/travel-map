@@ -89,9 +89,9 @@ function addLocationMarker(lat, lng) {
   if (userMarker) userMarker.setLatLng([lat, lng]);
   const icon = L.divIcon({
     className: 'location-pin',
-    html: `<div style="width:14px;height:14px;background:#FFD700;border:3px solid #000;border-radius:50%;box-shadow:2px 2px 0 #000;"></div>`,
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
+    html: `<div style="width:16px;height:16px;background:#FFD700;border:3px solid #000;border-radius:50%;box-shadow:3px 3px 0 #000;"></div>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
   });
   userMarker = L.marker([lat, lng], { icon, zIndexOffset: 1000 }).addTo(map);
 }
@@ -464,28 +464,18 @@ function addShopMarker(shop) {
   const isVisited = shop.status === 'visited';
   const dist = getDistance(userLat, userLng, shop.lat, shop.lng);
   const markerColor = isVisited ? '#8B6FC0' : (dist <= 2000 ? '#E23636' : '#1E90FF');
-  const boltSize = isVisited ? 0.85 : (dist <= 2000 ? 1.15 : 1);
+  const markerScale = isVisited ? 0.85 : (dist <= 2000 ? 1.15 : 1);
 
   const icon = L.divIcon({
     className: 'shop-pin',
     html: `
-      <div class="shop-marker-wrapper" style="transform:scale(${boltSize});transform-origin:center bottom;">
-        <svg class="shop-marker-icon" width="30" height="24" viewBox="0 0 30 24">
-          <!-- Shadow -->
-          <path d="M18,1 L8,13 15,13 L10,23 L26,12 L17,12 Z"
-            fill="#000" stroke="none" transform="translate(2,2)" opacity="0.3"/>
-          <!-- Main shape -->
-          <path d="M18,1 L8,13 15,13 L10,23 L26,12 L17,12 Z"
-            fill="${markerColor}" stroke="#000" stroke-width="2.5" stroke-linejoin="round"/>
-          <!-- White inner stroke -->
-          <path d="M18,1 L8,13 15,13 L10,23 L26,12 L17,12 Z"
-            fill="none" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>
-        </svg>
+      <div class="shop-marker-wrapper" style="transform:scale(${markerScale});transform-origin:center bottom;">
+        <div class="shop-marker-dot" style="background:${markerColor};"></div>
         <div class="shop-marker-label">${escapeHtml(shop.name)}</div>
       </div>
     `,
-    iconSize: [120, 60],
-    iconAnchor: [60, 46],
+    iconSize: [120, 56],
+    iconAnchor: [60, 48],
   });
 
   const marker = L.marker([shop.lat, shop.lng], { icon }).addTo(map);
