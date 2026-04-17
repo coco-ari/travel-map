@@ -469,13 +469,13 @@ function addShopMarker(shop) {
   const icon = L.divIcon({
     className: 'shop-pin',
     html: `
-      <div class="shop-marker-wrapper" style="transform:scale(${markerScale});transform-origin:center bottom;">
-        <div class="shop-marker-dot" style="background:${markerColor};"></div>
+      <div class="shop-marker-wrapper" style="transform:scale(${markerScale})">
+        <div class="shop-marker-dot" style="background:${markerColor}"></div>
         <div class="shop-marker-label">${escapeHtml(shop.name)}</div>
       </div>
     `,
-    iconSize: [120, 56],
-    iconAnchor: [60, 48],
+    iconSize: [100, 50],
+    iconAnchor: [50, 44],
   });
 
   const marker = L.marker([shop.lat, shop.lng], { icon }).addTo(map);

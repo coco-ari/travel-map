@@ -787,16 +787,12 @@ body::after {
 
 .shop-marker-wrapper { text-align: center; }
 .shop-marker-dot {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   border: 3px solid #000;
   box-shadow: 2px 2px 0 #000;
   margin: 0 auto;
-}
-
-.shop-marker-wrapper:active .shop-marker-dot {
-  transform: scale(1.15);
 }
 
 .shop-marker-label {
