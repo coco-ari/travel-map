@@ -624,27 +624,40 @@ const MOVE_THRESHOLD = 10;
 function initLongPress() {
   if (!map) return;
 
-  map.on('touchstart', (e) => {
-    if (pendingMarker) return;
-    const touch = e.originalEvent.touches[0];
-    if (!touch) return;
-    touchStartPos = { x: touch.screenX, y: touch.screenY };
-    longPressTimer = setTimeout(() => { startAddShop(e.latlng.lat, e.latlng.lng); }, LONG_PRESS_DURATION);
-  });
+  const el = map.getContainer();
 
-  map.on('touchmove', (e) => {
-    if (!touchStartPos) return;
-    const touch = e.originalEvent.touches[0];
+  el.addEventListener('touchstart', (e) => {
+    if (pendingMarker) return;
+    // Ignore touches on markers, popups, or controls
+    if (e.target.closest('.leaflet-marker-icon, .leaflet-popup, .leaflet-control, .shop-marker-wrapper')) return;
+    const touch = e.touches[0];
     if (!touch) return;
-    if (Math.abs(touch.screenX - touchStartPos.x) > MOVE_THRESHOLD || Math.abs(touch.screenY - touchStartPos.y) > MOVE_THRESHOLD) {
+    touchStartPos = { x: touch.clientX, y: touch.clientY };
+    longPressTimer = setTimeout(() => {
+      const point = map.mouseEventToContainerPoint(touch);
+      const latlng = map.containerPointToLatLng(point);
+      startAddShop(latlng.lat, latlng.lng);
+    }, LONG_PRESS_DURATION);
+  }, { passive: true });
+
+  el.addEventListener('touchmove', (e) => {
+    if (!touchStartPos) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    if (Math.abs(touch.clientX - touchStartPos.x) > MOVE_THRESHOLD || Math.abs(touch.clientY - touchStartPos.y) > MOVE_THRESHOLD) {
       if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     }
-  });
+  }, { passive: true });
 
-  map.on('touchend', () => {
+  el.addEventListener('touchend', () => {
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     touchStartPos = null;
-  });
+  }, { passive: true });
+
+  el.addEventListener('touchcancel', () => {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+    touchStartPos = null;
+  }, { passive: true });
 
   map.on('contextmenu', (e) => { e.originalEvent.preventDefault(); if (!pendingMarker) startAddShop(e.latlng.lat, e.latlng.lng); });
   map.on('mousedown', (e) => {
