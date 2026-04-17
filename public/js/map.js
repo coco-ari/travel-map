@@ -604,6 +604,7 @@ function showAddModal() {
 }
 
 function cancelAddShop() {
+  addingShop = false;
   document.getElementById('add-shop-modal')?.remove();
   if (pendingMarker) { map.removeLayer(pendingMarker); pendingMarker = null; }
   pendingLat = null; pendingLng = null;
@@ -626,6 +627,7 @@ async function confirmAddShop() {
 // ===== Long Press =====
 let longPressTimer = null;
 let touchStartPos = null;
+let addingShop = false; // Guard against rapid taps
 const LONG_PRESS_DURATION = 500;
 const MOVE_THRESHOLD = 10;
 
@@ -641,7 +643,7 @@ function initLongPress() {
   el.addEventListener('selectstart', e => e.preventDefault());
 
   el.addEventListener('touchstart', (e) => {
-    if (pendingMarker) return;
+    if (pendingMarker || addingShop) return;
     // Ignore touches on markers, popups, or controls
     if (e.target.closest('.leaflet-marker-icon, .leaflet-popup, .leaflet-control, .shop-marker-wrapper')) return;
     // Only trigger on empty map areas, not on UI controls
@@ -650,6 +652,7 @@ function initLongPress() {
     if (!touch) return;
     touchStartPos = { x: touch.clientX, y: touch.clientY };
     longPressTimer = setTimeout(() => {
+      addingShop = true;
       const point = map.mouseEventToContainerPoint(touch);
       const latlng = map.containerPointToLatLng(point);
       startAddShop(latlng.lat, latlng.lng);
@@ -675,10 +678,10 @@ function initLongPress() {
     touchStartPos = null;
   }, { passive: true });
 
-  map.on('contextmenu', (e) => { e.originalEvent.preventDefault(); if (!pendingMarker) startAddShop(e.latlng.lat, e.latlng.lng); });
+  map.on('contextmenu', (e) => { e.originalEvent.preventDefault(); if (!pendingMarker && !addingShop) startAddShop(e.latlng.lat, e.latlng.lng); });
   map.on('mousedown', (e) => {
-    if (pendingMarker) return;
-    longPressTimer = setTimeout(() => { startAddShop(e.latlng.lat, e.latlng.lng); }, LONG_PRESS_DURATION);
+    if (pendingMarker || addingShop) return;
+    longPressTimer = setTimeout(() => { addingShop = true; startAddShop(e.latlng.lat, e.latlng.lng); }, LONG_PRESS_DURATION);
   });
   map.on('mouseup mousemove', () => { if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; } });
 }
