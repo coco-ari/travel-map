@@ -463,23 +463,6 @@ body::after {
 .distance-bar {
   padding: 8px 0;
   background: var(--paper);
-  border-bottom: var(--border-thin);
-}
-
-.distance-bar::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0; right: 0;
-  height: 2px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--comic-red) 0px,
-    var(--comic-red) 4px,
-    transparent 4px,
-    transparent 8px
-  );
-  opacity: 0.2;
 }
 
 #card-view .distance-bar {
