@@ -182,6 +182,7 @@ body::before {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;

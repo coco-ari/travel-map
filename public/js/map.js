@@ -626,10 +626,18 @@ function initLongPress() {
 
   const el = map.getContainer();
 
+  // Prevent browser context menu on long press
+  el.addEventListener('contextmenu', e => e.preventDefault());
+
+  // Prevent text selection during long press
+  el.addEventListener('selectstart', e => e.preventDefault());
+
   el.addEventListener('touchstart', (e) => {
     if (pendingMarker) return;
     // Ignore touches on markers, popups, or controls
     if (e.target.closest('.leaflet-marker-icon, .leaflet-popup, .leaflet-control, .shop-marker-wrapper')) return;
+    // Only trigger on empty map areas, not on UI controls
+    if (e.target.closest('.map-controls, .navbar, .search-bar, .shop-marker-label')) return;
     const touch = e.touches[0];
     if (!touch) return;
     touchStartPos = { x: touch.clientX, y: touch.clientY };
