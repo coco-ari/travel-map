@@ -453,13 +453,15 @@ body::before {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 6px 4px 6px;
+  padding: 6px 0;
   background: linear-gradient(160deg, var(--bg) 0%, var(--bg-warm) 50%, #F0E6DC 100%);
 }
 
 .distance-bar-inner {
   display: flex;
+  justify-content: center;
   gap: 6px;
+  padding: 0 12px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
