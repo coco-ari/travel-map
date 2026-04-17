@@ -50,6 +50,10 @@ app.patch('/api/shops/:id/status', (req, res) => {
   res.json(shop);
 });
 
-app.listen(PORT, () => {
-  console.log(`Travel Map server running on http://localhost:${PORT}`);
-});
+module.exports = app;
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Travel Map server running on http://localhost:${PORT}`);
+  });
+}

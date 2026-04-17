@@ -1,8 +1,23 @@
 const assert = require('assert');
 const http = require('http');
-const { describe, it } = require('node:test');
+const { describe, it, before, after } = require('node:test');
 
-const BASE = 'http://localhost:3000';
+// Set isolated test DB BEFORE loading any server modules
+process.env.DB_PATH = './test.db';
+
+const app = require('../server');
+const PORT = 3999;
+let server;
+
+before(() => {
+  server = app.listen(PORT);
+});
+
+after(() => {
+  server.close();
+});
+
+const BASE = `http://localhost:${PORT}`;
 
 function request(method, path, body) {
   return new Promise((resolve, reject) => {
