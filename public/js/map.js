@@ -334,22 +334,34 @@ async function confirmAddShop() {
 
 // Long press detection
 let longPressTimer = null;
+let touchStartPos = null;
 const LONG_PRESS_DURATION = 500; // 500ms
+const MOVE_THRESHOLD = 10; // pixels
 
 map.on('touchstart', (e) => {
-  if (pendingMarker) return; // Don't trigger if already in add mode
-  const lat = e.latlng.lat;
-  const lng = e.latlng.lng;
+  if (pendingMarker) return;
+  const touch = e.originalEvent.touches[0];
+  if (!touch) return;
+  touchStartPos = { x: touch.screenX, y: touch.screenY };
+
   longPressTimer = setTimeout(() => {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
     startAddShop(lat, lng);
   }, LONG_PRESS_DURATION);
 });
 
-map.on('touchmove', () => {
-  // Cancel long press if user drags the map
-  if (longPressTimer) {
-    clearTimeout(longPressTimer);
-    longPressTimer = null;
+map.on('touchmove', (e) => {
+  if (!touchStartPos) return;
+  const touch = e.originalEvent.touches[0];
+  if (!touch) return;
+  const dx = Math.abs(touch.screenX - touchStartPos.x);
+  const dy = Math.abs(touch.screenY - touchStartPos.y);
+  if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
   }
 });
 
@@ -358,15 +370,22 @@ map.on('touchend', () => {
     clearTimeout(longPressTimer);
     longPressTimer = null;
   }
+  touchStartPos = null;
 });
 
-// Mouse fallback for desktop testing
+// Prevent context menu (long-press popup) on mobile
+map.on('contextmenu', (e) => {
+  e.originalEvent.preventDefault();
+  if (!pendingMarker) {
+    startAddShop(e.latlng.lat, e.latlng.lng);
+  }
+});
+
+// Desktop click fallback
 map.on('mousedown', (e) => {
   if (pendingMarker) return;
-  const lat = e.latlng.lat;
-  const lng = e.latlng.lng;
   longPressTimer = setTimeout(() => {
-    startAddShop(lat, lng);
+    startAddShop(e.latlng.lat, e.latlng.lng);
   }, LONG_PRESS_DURATION);
 });
 
