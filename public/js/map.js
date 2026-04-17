@@ -521,11 +521,15 @@ function formatDist(meters) {
   return meters + 'm';
 }
 
+let distRenderTimer = null;
+
 function applyDistance() {
   distanceFilter = Number(distSlider.value) / 1000;
   distValueEl.textContent = formatDist(distSlider.value);
   distAllBtn.classList.remove('dist-all-btn-active');
-  renderCards(true);
+  // Debounce card re-render for smooth sliding
+  clearTimeout(distRenderTimer);
+  distRenderTimer = setTimeout(() => renderCards(true), 200);
 }
 
 function setAllDistance() {
