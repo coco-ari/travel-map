@@ -446,13 +446,6 @@ function switchView(view) {
 viewCardBtn.addEventListener('click', () => { if (currentView !== 'card') switchView('card'); });
 viewMapBtn.addEventListener('click', () => { if (currentView !== 'map') switchView('map'); });
 
-// On init, set correct view state
-if (currentView === 'map') {
-  initMap();
-  setTimeout(() => { map.invalidateSize(); renderMarkers(); }, 200);
-  mapControls.classList.add('visible');
-}
-
 // ===== Search (debounced server-side) =====
 const searchInput = document.getElementById('search-input');
 if (searchInput) {
@@ -683,4 +676,6 @@ initMap = function() {
 };
 
 // ===== Init =====
+initMap();
+setTimeout(() => { map.invalidateSize(); renderMarkers(); }, 200);
 initLocation();
