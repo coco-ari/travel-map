@@ -29,16 +29,49 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS photos (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     shop_id     INTEGER NOT NULL,
-    filename    TEXT NOT NULL,
+    url         TEXT NOT NULL,
+    s3_key      TEXT DEFAULT '',
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
   )
 `);
 
-function addPhoto(shopId, filename) {
+// Migration: add url and s3_key columns to existing databases
+const photoColumns = db.pragma('table_info(photos)').map(c => c.name);
+if (!photoColumns.includes('url')) {
+  db.exec("ALTER TABLE photos ADD COLUMN url TEXT DEFAULT ''");
+  // Migrate old filename data to url
+  db.exec("UPDATE photos SET url = '/photos/' || filename WHERE url = '' AND filename != ''");
+}
+if (!photoColumns.includes('s3_key')) {
+  db.exec("ALTER TABLE photos ADD COLUMN s3_key TEXT DEFAULT ''");
+}
+
+// Migration: make filename nullable since we now use url column
+// SQLite doesn't support ALTER COLUMN, so we recreate the table
+const filenameInfo = db.pragma('table_info(photos)').find(c => c.name === 'filename');
+if (filenameInfo && filenameInfo.notnull === 1) {
+  db.exec(`
+    CREATE TABLE photos_new (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      shop_id     INTEGER NOT NULL,
+      filename    TEXT,
+      url         TEXT NOT NULL DEFAULT '',
+      s3_key      TEXT DEFAULT '',
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
+    );
+    INSERT INTO photos_new (shop_id, filename, url, s3_key, created_at)
+      SELECT shop_id, filename, url, s3_key, created_at FROM photos;
+    DROP TABLE photos;
+    ALTER TABLE photos_new RENAME TO photos;
+  `);
+}
+
+function addPhoto(shopId, url, s3Key) {
   const info = db.prepare(
-    'INSERT INTO photos (shop_id, filename) VALUES (?, ?)'
-  ).run(shopId, filename);
+    'INSERT INTO photos (shop_id, url, s3_key) VALUES (?, ?, ?)'
+  ).run(shopId, url, s3Key || '');
   return db.prepare('SELECT * FROM photos WHERE id = ?').get(info.lastInsertRowid);
 }
 
@@ -50,6 +83,10 @@ function getPhotosByShopId(shopId) {
 
 function deletePhoto(id) {
   return db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
+}
+
+function removePhoto(id) {
+  db.prepare('DELETE FROM photos WHERE id = ?').run(id);
 }
 
 function getAll(status) {
@@ -101,4 +138,4 @@ function updateNotes(id, notes, rating) {
   return db.prepare('SELECT * FROM shops WHERE id = ?').get(id);
 }
 
-module.exports = { getAll, create, getById, remove, updateStatus, addPhoto, getPhotosByShopId, deletePhoto, search, getVisited, updateNotes };
+module.exports = { getAll, create, getById, remove, updateStatus, addPhoto, getPhotosByShopId, deletePhoto, removePhoto, search, getVisited, updateNotes };

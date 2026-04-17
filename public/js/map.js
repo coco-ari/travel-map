@@ -20,7 +20,7 @@ let userMarker = null;
 let shopMarkers = {};
 let showAll = false;
 let allShops = [];
-let currentView = 'card'; // 'card' or 'map'
+let currentView = 'map'; // 'card' or 'map' — default to map
 
 // ===== Food emoji mapping =====
 function getFoodEmoji(name) {
@@ -145,7 +145,7 @@ function renderCards() {
   container.classList.remove('hidden');
   empty.classList.add('hidden');
 
-  shops.forEach((shop) => {
+  shops.forEach((shop, index) => {
     const dist = getDistance(userLat, userLng, shop.lat, shop.lng);
     const distStr = formatDistance(dist);
     const emoji = getFoodEmoji(shop.name);
@@ -154,6 +154,7 @@ function renderCards() {
 
     const card = document.createElement('div');
     card.className = 'shop-card';
+    card.style.animationDelay = `${index * 0.06}s`;
     card.innerHTML = `
       <div class="card-image">
         <div class="card-image-bg"></div>
@@ -177,56 +178,117 @@ function renderCards() {
     card.addEventListener('click', () => openShopCard(shop));
     container.appendChild(card);
   });
+
+  // Add parallax scroll effect
+  setupCardParallax();
+}
+
+// ===== Parallax Scroll Effect =====
+let parallaxTicking = false;
+
+function setupCardParallax() {
+  const container = document.getElementById('card-view');
+  if (!container) return;
+
+  container.removeEventListener('scroll', handleCardScroll);
+  container.addEventListener('scroll', handleCardScroll, { passive: true });
+}
+
+function handleCardScroll() {
+  if (parallaxTicking) return;
+  parallaxTicking = true;
+  requestAnimationFrame(() => {
+    const container = document.getElementById('card-view');
+    if (!container) { parallaxTicking = false; return; }
+
+    const scrollTop = container.scrollTop;
+    const cards = container.querySelectorAll('.shop-card');
+
+    cards.forEach((card) => {
+      const rect = card.getBoundingClientRect();
+      const cardTop = rect.top;
+      const cardHeight = rect.height;
+      const viewHeight = window.innerHeight;
+
+      // Only apply to cards in viewport
+      if (cardTop > viewHeight || cardTop + cardHeight < 0) return;
+
+      // Calculate parallax offset (subtle)
+      const progress = (viewHeight - cardTop) / (viewHeight + cardHeight);
+      const emoji = card.querySelector('.card-image-emoji');
+      if (emoji) {
+        const translateY = (progress - 0.5) * 6;
+        emoji.style.transform = `translateY(${translateY}px)`;
+      }
+    });
+
+    parallaxTicking = false;
+  });
 }
 
 async function openShopCard(shop) {
+  // Fetch latest data from server to ensure we show current state
+  const res = await fetch(`/api/shops/${shop.id}`);
+  let currentShop = shop;
+  if (res.ok) {
+    currentShop = await res.json();
+    // Update local data
+    const idx = allShops.findIndex(s => s.id === shop.id);
+    if (idx !== -1) {
+      allShops[idx] = currentShop;
+    }
+  }
+
   const detail = document.createElement('div');
   detail.className = 'modal-overlay';
   detail.id = 'shop-detail-modal';
-  const dist = getDistance(userLat, userLng, shop.lat, shop.lng);
+  const dist = getDistance(userLat, userLng, currentShop.lat, currentShop.lng);
   const distStr = formatDistance(dist);
 
   // Fetch photos
   let photos = [];
   try {
-    const res = await fetch(`/api/shops/${shop.id}/photos`);
-    if (res.ok) photos = await res.json();
+    const res2 = await fetch(`/api/shops/${currentShop.id}/photos`);
+    if (res2.ok) photos = await res2.json();
   } catch {}
 
   detail.innerHTML = `
     <div class="modal">
-      <div class="modal-header">${escapeHtml(shop.name)}</div>
+      <div class="modal-header">${escapeHtml(currentShop.name)}</div>
       <div class="modal-body">
-        <div style="margin-bottom:8px;"><strong>坐标：</strong>${shop.lat.toFixed(4)}, ${shop.lng.toFixed(4)}</div>
+        <div style="margin-bottom:8px;"><strong>坐标：</strong>${currentShop.lat.toFixed(4)}, ${currentShop.lng.toFixed(4)}</div>
         ${distStr ? `<div style="margin-bottom:8px;"><strong>距离：</strong>${distStr}</div>` : ''}
-        <div style="margin-bottom:8px;"><strong>状态：</strong>${shop.status === 'visited' ? '已去' : '未去'}</div>
-        ${shop.tags ? `<div style="margin-bottom:8px;"><strong>标签：</strong>${shop.tags.split(',').filter(Boolean).map(t => `<span class="card-tag" style="margin-right:4px;">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+        <div style="margin-bottom:8px;"><strong>状态：</strong>${currentShop.status === 'visited' ? '已去' : '未去'}</div>
+        ${currentShop.tags ? `<div style="margin-bottom:8px;"><strong>标签：</strong>${currentShop.tags.split(',').filter(Boolean).map(t => `<span class="card-tag" style="margin-right:4px;">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
         <div class="rating-section">
           <strong>评分：</strong>
-          <div class="stars" data-shop-id="${shop.id}" data-rating="${shop.rating || 0}">
-            ${[1,2,3,4,5].map(i => `<span class="star${i <= (shop.rating || 0) ? ' star-active' : ''}" data-value="${i}">★</span>`).join('')}
+          <div class="stars" data-shop-id="${currentShop.id}" data-rating="${currentShop.rating || 0}">
+            ${[1,2,3,4,5].map(i => `<span class="star${i <= (currentShop.rating || 0) ? ' star-active' : ''}" data-value="${i}">★</span>`).join('')}
           </div>
         </div>
         <div class="notes-section" style="margin-top:8px;">
-          <textarea id="shop-notes" class="notes-input" placeholder="添加备注..." maxlength="200">${escapeHtml(shop.notes || '')}</textarea>
+          <textarea id="shop-notes" class="notes-input" placeholder="添加备注..." maxlength="200">${escapeHtml(currentShop.notes || '')}</textarea>
         </div>
         ${photos.length > 0 ? `
         <div class="photo-section">
           <div class="photo-grid">
-            ${photos.map(p => `<div class="photo-thumb" onclick="previewPhoto('${p.filename}', ${p.id})"><img src="/photos/${p.filename}" alt="店铺照片"></div>`).join('')}
+            ${photos.map(p => {
+              const photoUrl = p.url || `/photos/${p.filename}`;
+              return `<div class="photo-thumb" onclick="previewPhoto('${photoUrl}', ${p.id})"><img src="${photoUrl}" alt="店铺照片"></div>`;
+            }).join('')}
           </div>
         </div>` : '<div class="no-photos">暂无照片</div>'}
         <div class="photo-actions">
           <label class="photo-upload-btn">
             📷 拍照上传
-            <input type="file" accept="image/*" capture="environment" id="photo-input" onchange="uploadPhoto(${shop.id}, this)" hidden>
+            <input type="file" accept="image/*" capture="environment" id="photo-input" onchange="uploadPhoto(${currentShop.id}, this)" hidden>
           </label>
           <button class="btn btn-secondary btn-sm" id="save-notes-btn">保存备注</button>
         </div>
       </div>
       <div class="modal-footer">
-        ${shop.status !== 'visited' ? `<button class="btn btn-primary" data-action="markVisited" data-id="${shop.id}">已吃</button>` : `<button class="btn btn-secondary" data-action="unvisit" data-id="${shop.id}">设为未去</button>`}
-        <button class="btn btn-secondary" data-action="navigateTo" data-lat="${shop.lat}" data-lng="${shop.lng}">导航</button>
+        ${currentShop.status !== 'visited' ? `<button class="btn btn-primary" data-action="markVisited" data-id="${currentShop.id}">已吃</button>` : `<button class="btn btn-secondary" data-action="unvisit" data-id="${currentShop.id}">设为未去</button>`}
+        <button class="btn btn-secondary" data-action="navigateTo" data-lat="${currentShop.lat}" data-lng="${currentShop.lng}">导航</button>
         <button class="btn" data-action="closeModal">关闭</button>
       </div>
     </div>
@@ -244,15 +306,26 @@ async function openShopCard(shop) {
   });
 
   // Save notes
+  let notesUpdated = false;
   detail.querySelector('#save-notes-btn').addEventListener('click', async () => {
     const notes = detail.querySelector('#shop-notes').value.trim();
     const rating = Number(detail.querySelector('.stars').dataset.rating);
-    await fetch(`/api/shops/${shop.id}/notes`, {
+    const saveRes = await fetch(`/api/shops/${currentShop.id}/notes`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ notes, rating }),
     });
-    alert('已保存');
+    const saved = await saveRes.json();
+    // Update local data
+    const idx = allShops.findIndex(s => s.id === currentShop.id);
+    if (idx !== -1) {
+      allShops[idx] = { ...allShops[idx], notes: saved.notes, rating: saved.rating };
+    }
+    notesUpdated = true;
+    // Show brief success feedback
+    const btn = detail.querySelector('#save-notes-btn');
+    btn.textContent = '已保存 ✓';
+    setTimeout(() => { btn.textContent = '保存备注'; }, 1500);
   });
 
   // Action buttons
@@ -260,13 +333,21 @@ async function openShopCard(shop) {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     const action = btn.dataset.action;
-    if (action === 'markVisited') markVisited(shop.id);
-    else if (action === 'unvisit') unvisitShop(shop.id);
-    else if (action === 'navigateTo') navigateTo(shop.lat, shop.lng);
-    else if (action === 'closeModal') detail.remove();
+    if (action === 'markVisited') markVisited(currentShop.id);
+    else if (action === 'unvisit') unvisitShop(currentShop.id);
+    else if (action === 'navigateTo') navigateTo(currentShop.lat, currentShop.lng);
+    else if (action === 'closeModal') {
+      detail.remove();
+      if (notesUpdated && currentView === 'card') renderCards();
+    }
   });
 
-  detail.addEventListener('click', (e) => { if (e.target === detail) detail.remove(); });
+  detail.addEventListener('click', (e) => {
+    if (e.target === detail) {
+      detail.remove();
+      if (notesUpdated && currentView === 'card') renderCards();
+    }
+  });
 }
 
 // ===== Map View =====
@@ -338,21 +419,23 @@ const viewCardBtn = document.getElementById('view-card-btn');
 const viewMapBtn = document.getElementById('view-map-btn');
 const cardView = document.getElementById('card-view');
 const mapContainer = document.getElementById('map-container');
+const mapControls = document.getElementById('map-controls');
 const longpressHint = document.getElementById('longpress-hint');
-const showAllRow = document.getElementById('show-all-row');
 
 function switchView(view) {
   currentView = view;
   if (view === 'card') {
     cardView.classList.remove('hidden');
     mapContainer.classList.add('hidden');
-    longpressHint.classList.add('hidden');
+    mapControls.classList.add('visible');
+    longpressHint?.classList.add('hidden');
     viewCardBtn.classList.add('view-btn-active');
     viewMapBtn.classList.remove('view-btn-active');
   } else {
     cardView.classList.add('hidden');
     mapContainer.classList.remove('hidden');
-    longpressHint.classList.remove('hidden');
+    mapControls.classList.add('visible');
+    longpressHint?.classList.remove('hidden');
     viewMapBtn.classList.add('view-btn-active');
     viewCardBtn.classList.remove('view-btn-active');
     initMap();
@@ -360,8 +443,15 @@ function switchView(view) {
   }
 }
 
-viewCardBtn.addEventListener('click', () => switchView('card'));
-viewMapBtn.addEventListener('click', () => switchView('map'));
+viewCardBtn.addEventListener('click', () => { if (currentView !== 'card') switchView('card'); });
+viewMapBtn.addEventListener('click', () => { if (currentView !== 'map') switchView('map'); });
+
+// On init, set correct view state
+if (currentView === 'map') {
+  initMap();
+  setTimeout(() => { map.invalidateSize(); renderMarkers(); }, 200);
+  mapControls.classList.add('visible');
+}
 
 // ===== Search (debounced server-side) =====
 const searchInput = document.getElementById('search-input');
@@ -410,12 +500,12 @@ window.showDetail = async function(id) {
   openShopCard(marker._shopData);
 };
 
-window.previewPhoto = function(filename, photoId) {
+window.previewPhoto = function(photoUrl, photoId) {
   const overlay = document.createElement('div');
   overlay.className = 'photo-preview-overlay';
   overlay.onclick = () => overlay.remove();
   overlay.innerHTML = `
-    <img src="/photos/${filename}" alt="照片预览">
+    <img src="${photoUrl}" alt="照片预览">
     <button class="btn btn-danger photo-delete-btn" onclick="event.stopPropagation(); deletePhoto(${photoId}, this)">删除</button>
   `;
   document.body.appendChild(overlay);
@@ -463,7 +553,6 @@ let pendingLat = null;
 let pendingLng = null;
 
 function startAddShop(lat, lng) {
-  if (longpressHint) longpressHint.style.opacity = '0';
   if (pendingMarker) { map.removeLayer(pendingMarker); pendingMarker = null; }
   pendingLat = lat;
   pendingLng = lng;

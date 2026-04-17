@@ -9,8 +9,14 @@
     "test": "node --test tests/api.test.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1031.0",
     "better-sqlite3": "^11.0.0",
+    "dotenv": "^17.4.2",
     "express": "^4.21.0",
-    "multer": "^2.1.1"
+    "multer": "^2.1.1",
+    "multer-s3": "^3.0.1"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.1693.0"
   }
 }

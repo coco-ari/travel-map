@@ -17,30 +17,33 @@
       </div>
     </header>
 
-    <!-- Search + View Toggle -->
+    <!-- Search bar -->
     <div class="search-bar">
       <input id="search-input" class="search-input" placeholder="搜索店铺名..." type="search">
     </div>
-    <div class="view-toggle">
-      <button class="view-btn view-btn-active" id="view-card-btn">卡片</button>
-      <button class="view-btn" id="view-map-btn">地图</button>
-    </div>
 
     <!-- Card View -->
-    <main id="card-view">
+    <main id="card-view" class="hidden">
       <div id="card-list"></div>
       <div id="card-empty" class="card-empty hidden"></div>
     </main>
 
-    <!-- Map View -->
-    <div id="map-container" class="hidden"></div>
-    <div id="longpress-hint" class="longpress-hint hidden">长按地图添加店铺</div>
-    <div class="toggle-row" id="show-all-row" style="position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.9);backdrop-filter:blur(12px);padding:8px 16px;border-radius:24px;display:flex;align-items:center;gap:10px;z-index:999;box-shadow:0 2px 12px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.06);">
-      <label class="toggle">
+    <!-- Map View (default) -->
+    <div id="map-container"></div>
+
+    <!-- Map Controls - unified floating panel -->
+    <div class="map-controls" id="map-controls">
+      <div class="view-toggle-inline">
+        <button class="view-btn-inline view-btn-active" id="view-map-btn">地图</button>
+        <button class="view-btn-inline" id="view-card-btn">卡片</button>
+      </div>
+      <div class="map-controls-divider"></div>
+      <label class="toggle-inline">
         <input type="checkbox" id="show-all-toggle" onchange="toggleShowAll()">
-        <span class="toggle-slider"></span>
+        <span class="toggle-slider-inline"></span>
+        <span class="toggle-label-inline">显示已吃</span>
       </label>
-      <span style="font-size:13px;font-weight:500;color:var(--text-secondary);">显示已去</span>
+      <div id="longpress-hint" class="longpress-hint-inline">长按地图上的空白处可添加店铺</div>
     </div>
   </div>
 

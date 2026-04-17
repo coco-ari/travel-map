@@ -1,13 +1,37 @@
 const express = require('express');
 const path = require('path');
 const db = require('./db');
+const multer = require('multer');
+const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 9800;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Page routes (admin added in Task 5)
+// ===== Local Photo Storage =====
+const PHOTOS_DIR = path.join(__dirname, 'public', 'photos');
+if (!fs.existsSync(PHOTOS_DIR)) fs.mkdirSync(PHOTOS_DIR, { recursive: true });
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: PHOTOS_DIR,
+    filename: (req, file, cb) => {
+      const unique = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+      cb(null, unique);
+    },
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req, file, cb) => {
+    if (/^image\/(jpeg|jpg|png|webp)$/.test(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('只支持 jpg/png/webp 图片'));
+    }
+  }
+});
+
+// Page routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -63,31 +87,6 @@ function autoTag(name) {
 }
 
 // API routes
-const multer = require('multer');
-const fs = require('fs');
-
-// Ensure photos directory exists
-fs.mkdirSync(path.join(__dirname, 'public', 'photos'), { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: path.join(__dirname, 'public', 'photos'),
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, unique + path.extname(file.originalname));
-  }
-});
-const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-  fileFilter: (req, file, cb) => {
-    if (/^image\/(jpeg|jpg|png|webp)$/.test(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('只支持 jpg/png/webp 图片'));
-    }
-  }
-});
-
 app.get('/api/shops', (req, res) => {
   const { status, search: q, visited } = req.query;
   if (q) {
@@ -97,6 +96,13 @@ app.get('/api/shops', (req, res) => {
     return res.json(db.getVisited());
   }
   res.json(db.getAll(status));
+});
+
+app.get('/api/shops/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const shop = db.getById(id);
+  if (!shop) return res.status(404).json({ error: 'shop not found' });
+  res.json(shop);
 });
 
 app.patch('/api/shops/:id/notes', (req, res) => {
@@ -149,7 +155,8 @@ app.post('/api/shops/:id/photo', upload.single('photo'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'no photo uploaded' });
   }
-  const photo = db.addPhoto(id, req.file.filename);
+  const photoUrl = `/photos/${req.file.filename}`;
+  const photo = db.addPhoto(id, photoUrl, '');
   res.status(201).json(photo);
 });
 
@@ -164,11 +171,13 @@ app.delete('/api/photos/:id', (req, res) => {
   if (!photo) {
     return res.status(404).json({ error: 'photo not found' });
   }
-  db.prepare('DELETE FROM photos WHERE id = ?').run(id);
-  // Delete file
-  try {
-    fs.unlinkSync(path.join(__dirname, 'public', 'photos', photo.filename));
-  } catch {}
+  db.removePhoto(id);
+
+  // Delete local file
+  if (photo.url) {
+    const localPath = path.join(__dirname, 'public', photo.url);
+    try { fs.unlinkSync(localPath); } catch (_) {}
+  }
   res.json({ ok: true });
 });
 
