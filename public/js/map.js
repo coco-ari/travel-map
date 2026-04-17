@@ -487,7 +487,7 @@ function createShopPopup(shop) {
     <div class="shop-popup-name">${escapeHtml(shop.name)}</div>
     ${formatDistance(dist) ? `<div class="shop-popup-dist">${formatDistance(dist)}</div>` : ''}
     <div class="shop-popup-actions">
-      <button class="btn btn-primary btn-sm" data-action="toggleVisited" data-id="${shop.id}">${shop.status === 'visited' ? '未探店' : '已探店'}</button>
+      <button class="btn btn-primary btn-sm" data-action="toggleVisited" data-id="${shop.id}">${shop.status === 'visited' ? '未探' : '已探'}</button>
       <button class="btn btn-secondary btn-sm" data-action="showDetail" data-id="${shop.id}">详情</button>
       <button class="btn btn-secondary btn-sm" data-action="moveShop" data-id="${shop.id}">移动</button>
       <button class="btn btn-secondary btn-sm" data-action="navigateTo" data-lat="${shop.lat}" data-lng="${shop.lng}">导航</button>
@@ -674,6 +674,11 @@ function performSearch(keyword) {
 }
 
 function showSearchResults(shops) {
+  // Sort by distance ascending
+  if (userLat && userLng) {
+    shops.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
+  }
+
   if (shops.length === 0) {
     searchResults.innerHTML = '<div class="search-empty">没有找到相关店铺</div>';
   } else {
