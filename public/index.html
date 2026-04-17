@@ -33,7 +33,17 @@
     <!-- Card View -->
     <main id="card-view" class="hidden">
       <div class="distance-panel">
-        <input type="range" class="dist-slider" id="dist-slider" min="100" max="10000" step="100" value="5000">
+        <div class="dist-ticks">
+          <span class="dist-tick" onclick="setDistance(1000)">1km</span>
+          <span class="dist-tick" onclick="setDistance(2000)">2km</span>
+          <span class="dist-tick" onclick="setDistance(5000)">5km</span>
+        </div>
+        <input type="range" class="dist-slider" id="dist-slider" min="100" max="10000" step="100" value="5000" list="dist-steps">
+        <datalist id="dist-steps">
+          <option value="1000"></option>
+          <option value="2000"></option>
+          <option value="5000"></option>
+        </datalist>
         <div class="dist-value" id="dist-value">5km</div>
         <button class="dist-all-btn" id="dist-all-btn" onclick="setAllDistance()">全部</button>
       </div>

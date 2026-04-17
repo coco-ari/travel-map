@@ -458,7 +458,7 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 10px 6px;
   background: rgba(255,255,255,0.92);
   backdrop-filter: blur(16px);
@@ -469,6 +469,26 @@ body::before {
   border-right: none;
 }
 
+.dist-ticks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dist-tick {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.dist-tick:active {
+  background: var(--accent-glow);
+}
+
 .dist-slider {
   writing-mode: vertical-lr;
   direction: rtl;
@@ -477,6 +497,56 @@ body::before {
   accent-color: var(--accent);
   cursor: pointer;
   margin: 0;
+}
+
+.dist-slider::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+}
+
+.dist-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+}
+
+/* Tick marks for common distances */
+.dist-ticks-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
+}
+
+.dist-tick-mark {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 2px 0;
+  transition: color 0.15s;
+}
+
+.dist-tick-mark:active {
+  opacity: 0.7;
+}
+
+/* Major tick marks - longer visual markers */
+.dist-tick-mark.major {
+  position: relative;
+  padding-left: 8px;
+}
+
+.dist-tick-mark.major::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
 }
 
 .dist-value {

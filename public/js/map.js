@@ -540,6 +540,12 @@ function setAllDistance() {
 }
 window.setAllDistance = setAllDistance;
 
+function setDistance(meters) {
+  distSlider.value = meters;
+  applyDistance();
+}
+window.setDistance = setDistance;
+
 if (distSlider) {
   distSlider.addEventListener('input', applyDistance);
 }
