@@ -803,8 +803,8 @@ body::after {
   font-family: var(--font-comic);
   font-size: 12px;
   color: var(--ink);
-  text-shadow: 0 0 3px #fff, 0 0 6px #fff;
-  max-width: 90px;
+  text-shadow: 0 0 4px #fff;
+  max-width: 80px;
   white-space: normal;
   word-break: break-all;
   line-height: 1.1;
