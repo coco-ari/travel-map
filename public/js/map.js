@@ -346,13 +346,12 @@ async function openShopCard(shop) {
             📷 拍照上传
             <input type="file" accept="image/*" capture="environment" id="photo-input" onchange="uploadPhoto(${currentShop.id}, this)" hidden>
           </label>
-          <button class="btn btn-secondary btn-sm" id="save-notes-btn">保存备注</button>
         </div>
       </div>
       <div class="modal-footer">
         ${currentShop.status !== 'visited' ? `<button class="btn btn-primary" data-action="markVisited" data-id="${currentShop.id}">已吃</button>` : `<button class="btn btn-secondary" data-action="unvisit" data-id="${currentShop.id}">设为未去</button>`}
         <button class="btn btn-secondary" data-action="navigateTo" data-lat="${currentShop.lat}" data-lng="${currentShop.lng}">导航</button>
-        <button class="btn" data-action="closeModal">关闭</button>
+        <button class="btn btn-primary" data-action="saveAndClose">保存并关闭</button>
       </div>
     </div>
   `;
@@ -368,29 +367,6 @@ async function openShopCard(shop) {
     });
   });
 
-  // Save notes
-  let notesUpdated = false;
-  detail.querySelector('#save-notes-btn').addEventListener('click', async () => {
-    const notes = detail.querySelector('#shop-notes').value.trim();
-    const rating = Number(detail.querySelector('.stars').dataset.rating);
-    const saveRes = await fetch(`/api/shops/${currentShop.id}/notes`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notes, rating }),
-    });
-    const saved = await saveRes.json();
-    // Update local data
-    const idx = allShops.findIndex(s => s.id === currentShop.id);
-    if (idx !== -1) {
-      allShops[idx] = { ...allShops[idx], notes: saved.notes, rating: saved.rating };
-    }
-    notesUpdated = true;
-    // Show brief success feedback
-    const btn = detail.querySelector('#save-notes-btn');
-    btn.textContent = '已保存 ✓';
-    setTimeout(() => { btn.textContent = '保存备注'; }, 1500);
-  });
-
   // Action buttons
   detail.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
@@ -399,18 +375,34 @@ async function openShopCard(shop) {
     if (action === 'markVisited') markVisited(currentShop.id);
     else if (action === 'unvisit') unvisitShop(currentShop.id);
     else if (action === 'navigateTo') navigateTo(currentShop.lat, currentShop.lng);
-    else if (action === 'closeModal') {
-      detail.remove();
-      if (notesUpdated && currentView === 'card') renderCards();
-    }
+    else if (action === 'saveAndClose') saveAndClose(currentShop.id, detail);
+    else if (action === 'closeModal') detail.remove();
   });
 
   detail.addEventListener('click', (e) => {
     if (e.target === detail) {
-      detail.remove();
-      if (notesUpdated && currentView === 'card') renderCards();
+      saveAndClose(currentShop.id, detail);
     }
   });
+}
+
+async function saveAndClose(shopId, detail) {
+  const notes = detail.querySelector('#shop-notes').value.trim();
+  const rating = Number(detail.querySelector('.stars').dataset.rating);
+  try {
+    await fetch(`/api/shops/${shopId}/notes`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes, rating }),
+    });
+  } catch {}
+  // Update local data
+  const idx = allShops.findIndex(s => s.id === shopId);
+  if (idx !== -1) {
+    allShops[idx] = { ...allShops[idx], notes, rating };
+  }
+  detail.remove();
+  if (currentView === 'card') renderCards();
 }
 
 // ===== Map View =====
